@@ -60,7 +60,7 @@ truffle migrate --reset --network development
 
 ```bash
 cd client-licensee
-yarn install
+npm install
 ```
 
 > If you're using `npm`, ensure you're using `node >= 20` and switch to `sass` as the CSS preprocessor.
