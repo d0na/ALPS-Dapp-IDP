@@ -3,6 +3,7 @@ import Dashboard from "./views/Dashboard";
 import LicensorDetails from "./views/LicensorDetails";
 import Payments from "./views/Payments";
 import SmartLicense from "./views/SmartLicense";
+import BuildSmartLicense from "./views/BuildSmartLicense";
 import Devices from "./views/Devices";
 import IPRegistry from "./views/IPRegistry";
 import ActiveLicenses from "views/ActiveLicenses";
@@ -45,7 +46,13 @@ var routes = [
     layout: "/licensee",
   },
 
-
+  {
+    path: "/build-smart-license",
+    name: "Build Smart License",
+    icon: "nc-icon nc-settings-gear-65",
+    component: BuildSmartLicense,
+    layout: "/licensee",
+  },
 
   {
     path: "/ip",
