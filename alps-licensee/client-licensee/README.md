@@ -22,7 +22,7 @@ These are the necessary steps to compile and run the ALPS Licensee project local
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-org/alps-licensee.git
+git clone https://github.com/d0na/ALPS-Dapp-IDP.git
 cd alps-licensee
 ```
 
