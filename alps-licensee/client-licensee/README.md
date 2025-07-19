@@ -1,70 +1,118 @@
-# Getting Started with Create React App
+# ALPS Licensee DApp
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Changelog (New Branch)
 
-## Available Scripts
+While configuring the project on **macOS ARM64 (M3 Pro)** using **Node.js v20.18.3**, several compatibility issues arose. To ensure successful compilation and execution of the client application, the following changes were made:
 
-In the project directory, you can run:
+- Removed:
+    - `"nivo": "^0.31.0"` (due to issues with native dependencies on M1/M2/M3 Macs)
+    - `"node-sass": "4.14.1"` (incompatible with Node 20 and ARM-based macOS)
 
-### `npm start`
+- Added:
+    - `"sass": "^1.32.0"` — a drop-in replacement for `node-sass`, fully compatible with the latest Node.js versions and ARM64 architecture
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+> All steps tested using **npm** (not `yarn`)
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+---
 
-### `npm test`
+## Setup Instructions
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+These are the necessary steps to compile and run the ALPS Licensee project locally:
 
-### `npm run build`
+### 1. Clone the repository
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```bash
+git clone https://github.com/your-org/alps-licensee.git
+cd alps-licensee
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### 2. Install Ganache CLI (globally)
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```bash
+npm install -g ganache
+```
 
-### `npm run eject`
+### 3. Start Ganache
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+```bash
+ganache --port 8545
+```
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### 4. Compile and migrate contracts
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+Make sure `truffle` is installed globally:
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+```bash
+npm install -g truffle
+```
 
-## Learn More
+Then:
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```bash
+cd alps-licensee
+truffle compile --all
+truffle migrate --reset --network development
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+> This will generate the contracts in `client-licensee/src/contracts`.
 
-### Code Splitting
+### 5. Install client dependencies
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+```bash
+cd client-licensee
+yarn install
+```
 
-### Analyzing the Bundle Size
+> If you're using `npm`, ensure you're using `node >= 20` and switch to `sass` as the CSS preprocessor.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+### 6. Install WebSocket dependency and start the backend server
 
-### Making a Progressive Web App
+```bash
+cd server
+npm install ws
+node ./server.js
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+This assumes that your WebSocket server is located at `server/server.js`. Adjust the path if needed.
 
-### Advanced Configuration
+### 7. Start the client DApp
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+```bash
+yarn start
+```
 
-### Deployment
+> The app will run at `http://localhost:3000`.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+---
 
-### `npm run build` fails to minify
+## Notes
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- Make sure you have a MetaMask wallet configured with a **custom RPC** at `http://127.0.0.1:8545` to connect to Ganache.
+- If you encounter any `sass-loader` issues, ensure that `sass` is installed and `node-sass` is fully removed.
+- If Drizzle or WebSocket fails to connect, ensure your WebSocket server (if used) is available on `ws://localhost:3030`.
+
+---
+
+## Tech Stack
+
+- **Frontend**: React + Drizzle + Web3
+- **Smart Contracts**: Solidity (Truffle)
+- **Blockchain**: Local Ganache instance (port 8545)
+
+---
+
+## Troubleshooting
+
+If compilation fails with errors related to placeholders like `&::placeholder`, ensure that SCSS mixins are not invoked at the top level and are properly wrapped inside selectors.
+
+---
+
+## Tested on
+
+- macOS 14.x ARM64 (Apple Silicon)
+- Node.js v20.18.3
+- Yarn v1.22.x
+- Truffle v5.9.x
+- Ganache v7.x
+
+---
