@@ -78,7 +78,7 @@ This assumes that your WebSocket server is located at `server/server.js`. Adjust
 ### 7. Start the client DApp
 
 ```bash
-yarn start
+npm start
 ```
 
 > The app will run at `http://localhost:3000`.
@@ -111,7 +111,7 @@ If compilation fails with errors related to placeholders like `&::placeholder`, 
 
 - macOS 14.x ARM64 (Apple Silicon)
 - Node.js v20.18.3
-- Yarn v1.22.x
+- npm v10.8.x
 - Truffle v5.9.x
 - Ganache v7.x
 
