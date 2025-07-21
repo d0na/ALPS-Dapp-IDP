@@ -22,7 +22,7 @@ These are the necessary steps to compile and run the ALPS Licensee project local
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-org/alps-licensee.git
+git clone https://github.com/d0na/ALPS-Dapp-IDP.git
 cd alps-licensee
 ```
 
@@ -60,7 +60,7 @@ truffle migrate --reset --network development
 
 ```bash
 cd client-licensee
-yarn install
+npm install
 ```
 
 > If you're using `npm`, ensure you're using `node >= 20` and switch to `sass` as the CSS preprocessor.
@@ -78,7 +78,7 @@ This assumes that your WebSocket server is located at `server/server.js`. Adjust
 ### 7. Start the client DApp
 
 ```bash
-yarn start
+npm start
 ```
 
 > The app will run at `http://localhost:3000`.
@@ -111,7 +111,7 @@ If compilation fails with errors related to placeholders like `&::placeholder`, 
 
 - macOS 14.x ARM64 (Apple Silicon)
 - Node.js v20.18.3
-- Yarn v1.22.x
+- npm v10.8.x
 - Truffle v5.9.x
 - Ganache v7.x
 
