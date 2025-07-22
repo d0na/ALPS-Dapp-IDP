@@ -16,6 +16,8 @@ import {
   FormGroup,
   Input,
   Label,
+  Alert,
+  Badge,
   // Table,
 } from "reactstrap";
 import { useBuildSmartLicenseStyles } from "../styles/buildSmartLicenseStyles";
@@ -28,31 +30,98 @@ const getSchemeColor = (index) => {
   return index < colorScheme.length ? colorScheme[index] : "#000000";
 };
 
+// Required field indicator component
+const RequiredField = ({ children, isRequired = true }) => (
+  <div style={{ display: 'flex', alignItems: 'center' }}>
+    {children}
+    {isRequired && <span style={{ color: 'red', marginLeft: '4px' }}>*</span>}
+  </div>
+);
+
+// Validation status component
+const ValidationStatus = ({ isValid, warnings, requiredFields, mode }) => {
+  if (mode === 'ai') {
+    return (
+      <Alert color={isValid ? "success" : "warning"} style={{ marginBottom: '20px' }}>
+        <strong>AI Input Status:</strong> {isValid ? "Valid text provided" : "Please provide sufficient text (minimum 10 characters)"}
+      </Alert>
+    );
+  }
+
+  const missingFields = [];
+  if (requiredFields) {
+    Object.entries(requiredFields).forEach(([field, hasValue]) => {
+      if (!hasValue) {
+        missingFields.push(field.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()));
+      }
+    });
+  }
+
+  return (
+    <Alert color={isValid ? "success" : "warning"} style={{ marginBottom: '20px' }}>
+      <strong>Validation Status:</strong> {isValid ? "All required fields completed" : "Please complete required fields"}
+      {!isValid && missingFields.length > 0 && (
+        <div style={{ marginTop: '10px' }}>
+          <strong>Missing required fields:</strong>
+          <ul style={{ marginBottom: '0', paddingLeft: '20px' }}>
+            {missingFields.map((field, idx) => (
+              <li key={idx}>{field}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {warnings && warnings.length > 0 && (
+        <div style={{ marginTop: '10px' }}>
+          <strong>Warnings:</strong>
+          <ul style={{ marginBottom: '0', paddingLeft: '20px' }}>
+            {warnings.map((warning, idx) => (
+              <li key={idx}>{warning}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </Alert>
+  );
+};
+
 // Simple Manual Form (Original)
-const SimpleManualForm = ({ manualData, setManualData }) => (
+const SimpleManualForm = ({ manualData, setManualData, validation }) => (
   <div>
+    <ValidationStatus 
+      isValid={validation.isValid} 
+      warnings={validation.warnings} 
+      requiredFields={validation.requiredFields}
+      mode="simple"
+    />
+    
     <Row>
       <Col md="6">
         <FormGroup>
-          <Label for="licenseTitle">License Title</Label>
+          <Label for="licenseTitle">
+            <RequiredField>License Title</RequiredField>
+          </Label>
           <Input
             type="text"
             id="licenseTitle"
             placeholder="Enter license title"
             value={manualData.title || ''}
             onChange={(e) => setManualData({...manualData, title: e.target.value})}
+            invalid={!validation.requiredFields?.hasTitle}
           />
         </FormGroup>
       </Col>
       <Col md="6">
         <FormGroup>
-          <Label for="licensorName">Licensor Name</Label>
+          <Label for="licensorName">
+            <RequiredField>Licensor Name</RequiredField>
+          </Label>
           <Input
             type="text"
             id="licensorName"
             placeholder="Enter licensor name"
             value={manualData.licensor || ''}
             onChange={(e) => setManualData({...manualData, licensor: e.target.value})}
+            invalid={!validation.requiredFields?.hasLicensor}
           />
         </FormGroup>
       </Col>
@@ -60,12 +129,15 @@ const SimpleManualForm = ({ manualData, setManualData }) => (
     <Row>
       <Col md="6">
         <FormGroup>
-          <Label for="licenseType">License Type</Label>
+          <Label for="licenseType">
+            <RequiredField>License Type</RequiredField>
+          </Label>
           <Input
             type="select"
             id="licenseType"
             value={manualData.type || ''}
             onChange={(e) => setManualData({...manualData, type: e.target.value})}
+            invalid={!validation.requiredFields?.hasType}
           >
             <option value="">Select license type</option>
             <option value="exclusive">Exclusive</option>
@@ -76,13 +148,16 @@ const SimpleManualForm = ({ manualData, setManualData }) => (
       </Col>
       <Col md="6">
         <FormGroup>
-          <Label for="duration">Duration (months)</Label>
+          <Label for="duration">
+            <RequiredField>Duration (months)</RequiredField>
+          </Label>
           <Input
             type="number"
             id="duration"
             placeholder="Enter duration in months"
             value={manualData.duration || ''}
             onChange={(e) => setManualData({...manualData, duration: e.target.value})}
+            invalid={!validation.requiredFields?.hasDuration}
           />
         </FormGroup>
       </Col>
@@ -90,7 +165,9 @@ const SimpleManualForm = ({ manualData, setManualData }) => (
     <Row>
       <Col md="6">
         <FormGroup>
-          <Label for="royaltyRate">Royalty Rate (%)</Label>
+          <Label for="royaltyRate">
+            <RequiredField>Royalty Rate (%)</RequiredField>
+          </Label>
           <Input
             type="number"
             step="0.01"
@@ -98,18 +175,22 @@ const SimpleManualForm = ({ manualData, setManualData }) => (
             placeholder="Enter royalty rate"
             value={manualData.royaltyRate || ''}
             onChange={(e) => setManualData({...manualData, royaltyRate: e.target.value})}
+            invalid={!validation.requiredFields?.hasRoyaltyRate}
           />
         </FormGroup>
       </Col>
       <Col md="6">
         <FormGroup>
-          <Label for="territory">Territory</Label>
+          <Label for="territory">
+            <RequiredField>Territory</RequiredField>
+          </Label>
           <Input
             type="text"
             id="territory"
             placeholder="e.g., Worldwide, USA, Europe"
             value={manualData.territory || ''}
             onChange={(e) => setManualData({...manualData, territory: e.target.value})}
+            invalid={!validation.requiredFields?.hasTerritory}
           />
         </FormGroup>
       </Col>
@@ -181,22 +262,28 @@ const DeviceRuleForm = ({ rule, ruleIndex, deviceIndex, licensors, ips, onRuleUp
         <Row>
           <Col md="6">
             <FormGroup>
-              <Label>Rule Name</Label>
+              <Label>
+                <RequiredField>Rule Name</RequiredField>
+              </Label>
               <Input
                 type="text"
                 value={rule.name}
                 onChange={(e) => handleRuleChange('name', e.target.value)}
                 placeholder="Enter rule name"
+                invalid={!rule.name || rule.name.trim() === ""}
               />
             </FormGroup>
           </Col>
           <Col md="6">
             <FormGroup>
-              <Label>IP (Licensor)</Label>
+              <Label>
+                <RequiredField>IP (Licensor)</RequiredField>
+              </Label>
               <Input
                 type="select"
                 value={rule.ip}
                 onChange={(e) => handleRuleChange('ip', e.target.value)}
+                invalid={rule.ip === ""}
               >
                 <option value="">Select IP</option>
                 {ips.map((ip, idx) => (
@@ -212,7 +299,9 @@ const DeviceRuleForm = ({ rule, ruleIndex, deviceIndex, licensors, ips, onRuleUp
         <Row>
           <Col md="3">
             <FormGroup>
-              <Label>Royalty Type</Label>
+              <Label>
+                <RequiredField>Royalty Type</RequiredField>
+              </Label>
               <Input
                 type="select"
                 value={rule.type}
@@ -225,7 +314,9 @@ const DeviceRuleForm = ({ rule, ruleIndex, deviceIndex, licensors, ips, onRuleUp
           </Col>
           <Col md="3">
             <FormGroup>
-              <Label>Royalty Base</Label>
+              <Label>
+                <RequiredField>Royalty Base</RequiredField>
+              </Label>
               <Input
                 type="select"
                 value={rule.measure}
@@ -239,12 +330,15 @@ const DeviceRuleForm = ({ rule, ruleIndex, deviceIndex, licensors, ips, onRuleUp
           </Col>
           <Col md="3">
             <FormGroup>
-              <Label>Duration (days)</Label>
+              <Label>
+                <RequiredField>Duration (days)</RequiredField>
+              </Label>
               <Input
                 type="number"
                 min="1"
                 value={rule.duration}
                 onChange={(e) => handleRuleChange('duration', e.target.value)}
+                invalid={!rule.duration || parseInt(rule.duration) <= 0}
               />
             </FormGroup>
           </Col>
@@ -263,7 +357,9 @@ const DeviceRuleForm = ({ rule, ruleIndex, deviceIndex, licensors, ips, onRuleUp
         </Row>
 
         <div style={{ marginTop: '15px' }}>
-          <Label>Threshold Amounts</Label>
+          <Label>
+            <RequiredField>Threshold Amounts</RequiredField>
+          </Label>
           {rule.threshAmounts.map((thresh, threshIdx) => (
             <Row key={threshIdx} style={{ marginBottom: '5px' }}>
               <Col md="4">
@@ -276,6 +372,7 @@ const DeviceRuleForm = ({ rule, ruleIndex, deviceIndex, licensors, ips, onRuleUp
                     value={thresh.threshold}
                     onChange={(e) => handleThresholdChange(threshIdx, 'threshold', e.target.value)}
                     placeholder="Threshold"
+                    invalid={!thresh.threshold || parseInt(thresh.threshold) <= 0}
                   />
                 )}
               </Col>
@@ -287,6 +384,7 @@ const DeviceRuleForm = ({ rule, ruleIndex, deviceIndex, licensors, ips, onRuleUp
                   value={thresh.amount}
                   onChange={(e) => handleThresholdChange(threshIdx, 'amount', e.target.value)}
                   placeholder="Amount"
+                  invalid={!thresh.amount || parseFloat(thresh.amount) < 0}
                 />
               </Col>
               <Col md="4">
@@ -352,29 +450,35 @@ const DeviceForm = ({ device, deviceIndex, licensors, ips, onDeviceUpdate }) => 
     <Card style={{ marginBottom: '20px' }}>
       <CardHeader>
         <CardTitle tag="h5">{device.name}</CardTitle>
-      </CardHeader>
+    </CardHeader>
       <CardBody>
         <Row>
           <Col md="4">
             <FormGroup>
-              <Label>Device Name</Label>
+              <Label>
+                <RequiredField>Device Name</RequiredField>
+              </Label>
               <Input
                 type="text"
                 value={device.name}
                 onChange={(e) => handleDeviceChange('name', e.target.value)}
                 placeholder="Enter device name"
+                invalid={!device.name || device.name.trim() === ""}
               />
             </FormGroup>
           </Col>
           <Col md="4">
             <FormGroup>
-              <Label>Price (cents)</Label>
+              <Label>
+                <RequiredField>Price (cents)</RequiredField>
+              </Label>
               <Input
                 type="number"
                 min="0"
                 value={device.price}
                 onChange={(e) => handleDeviceChange('price', e.target.value)}
                 placeholder="Enter price in cents"
+                invalid={!device.price || parseInt(device.price) <= 0}
               />
             </FormGroup>
           </Col>
@@ -431,7 +535,9 @@ const DeviceForm = ({ device, deviceIndex, licensors, ips, onDeviceUpdate }) => 
 
         <div style={{ marginTop: '20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-            <h6>Licensing Rules ({device.rules.length})</h6>
+            <h6>
+              <RequiredField>Licensing Rules ({device.rules.length})</RequiredField>
+            </h6>
             <Button color="primary" size="sm" onClick={addRule}>
               Add Rule
             </Button>
@@ -561,7 +667,7 @@ const LicensorsIPsManagement = ({ licensors, ips, setManualData, manualData }) =
         <Card>
           <CardHeader>
             <CardTitle tag="h6">
-              Licensors ({licensors.length})
+              <RequiredField>Licensors ({licensors.length})</RequiredField>
               <Button color="success" size="sm" className="ml-2" onClick={addLicensor}>
                 Add Licensor
               </Button>
@@ -578,6 +684,7 @@ const LicensorsIPsManagement = ({ licensors, ips, setManualData, manualData }) =
                         value={licensor.name}
                         onChange={(e) => updateLicensor(idx, 'name', e.target.value)}
                         placeholder="Licensor name"
+                        invalid={!licensor.name || licensor.name.trim() === ""}
                       />
                     </FormGroup>
                   </Col>
@@ -603,7 +710,7 @@ const LicensorsIPsManagement = ({ licensors, ips, setManualData, manualData }) =
         <Card>
           <CardHeader>
             <CardTitle tag="h6">
-              Intellectual Properties ({ips.length})
+              <RequiredField>Intellectual Properties ({ips.length})</RequiredField>
               <Button color="warning" size="sm" className="ml-2" onClick={addIP}>
                 Add IP
               </Button>
@@ -620,6 +727,7 @@ const LicensorsIPsManagement = ({ licensors, ips, setManualData, manualData }) =
                         value={ip.name}
                         onChange={(e) => updateIP(idx, 'name', e.target.value)}
                         placeholder="IP name"
+                        invalid={!ip.name || ip.name.trim() === ""}
                       />
                     </FormGroup>
                   </Col>
@@ -659,7 +767,7 @@ const LicensorsIPsManagement = ({ licensors, ips, setManualData, manualData }) =
   );
 };
 
-const ALPSManualForm = ({ manualData, setManualData }) => {
+const ALPSManualForm = ({ manualData, setManualData, validation }) => {
   const [activeDeviceTab, setActiveDeviceTab] = useState(0);
 
   // Initialize ALPS data structure if not exists
@@ -758,6 +866,13 @@ const ALPSManualForm = ({ manualData, setManualData }) => {
 
   return (
     <div>
+      <ValidationStatus 
+        isValid={validation.isValid} 
+        warnings={validation.warnings} 
+        requiredFields={validation.requiredFields}
+        mode="alps"
+      />
+      
       <Row style={{ marginBottom: '20px' }}>
         <Col md="4">
           <Card>
@@ -774,10 +889,26 @@ const ALPSManualForm = ({ manualData, setManualData }) => {
             <CardBody>
               <h6>Current Configuration</h6>
               <Row>
-                <Col>Devices: {manualData.devices?.length || 0}</Col>
-                <Col>Licensors: {manualData.licensors?.length || 0}</Col>
-                <Col>IPs: {manualData.ips?.length || 0}</Col>
-                <Col>Rules: {manualData.devices?.reduce((sum, device) => sum + (device.rules?.length || 0), 0) || 0}</Col>
+                <Col>
+                  <Badge color={validation.requiredFields?.hasDevices ? "success" : "warning"}>
+                    Devices: {manualData.devices?.length || 0}
+                  </Badge>
+                </Col>
+                <Col>
+                  <Badge color={validation.requiredFields?.hasLicensors ? "success" : "warning"}>
+                    Licensors: {manualData.licensors?.length || 0}
+                  </Badge>
+                </Col>
+                <Col>
+                  <Badge color={validation.requiredFields?.hasIPs ? "success" : "warning"}>
+                    IPs: {manualData.ips?.length || 0}
+                  </Badge>
+                </Col>
+                <Col>
+                  <Badge color={validation.requiredFields?.allDevicesHaveRules ? "success" : "warning"}>
+                    Rules: {manualData.devices?.reduce((sum, device) => sum + (device.rules?.length || 0), 0) || 0}
+                  </Badge>
+                </Col>
               </Row>
             </CardBody>
           </Card>
@@ -793,7 +924,9 @@ const ALPSManualForm = ({ manualData, setManualData }) => {
 
       <div style={{ marginTop: '20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-          <h5>Devices Configuration</h5>
+          <h5>
+            <RequiredField>Devices Configuration</RequiredField>
+          </h5>
         </div>
 
         {manualData.devices && manualData.devices.length > 0 && (
@@ -846,7 +979,7 @@ const ALPSManualForm = ({ manualData, setManualData }) => {
   );
 };
 
-const AIConfigurationForm = ({ aiText, setAiText }) => {
+const AIConfigurationForm = ({ aiText, setAiText, validation }) => {
   const classes = useBuildSmartLicenseStyles();
 
   const handleFileUpload = (event) => {
@@ -862,6 +995,12 @@ const AIConfigurationForm = ({ aiText, setAiText }) => {
 
   return (
     <div>
+      <ValidationStatus 
+        isValid={validation.isValid} 
+        warnings={validation.warnings} 
+        mode="ai"
+      />
+      
       <Row>
         <Col md="12">
           <FormGroup>
@@ -895,7 +1034,9 @@ const AIConfigurationForm = ({ aiText, setAiText }) => {
       <Row>
         <Col md="12">
           <FormGroup>
-            <Label for="aiTextInput">Or Enter Text/JSON Manually</Label>
+            <Label for="aiTextInput">
+              <RequiredField>Or Enter Text/JSON Manually</RequiredField>
+            </Label>
             <Input
               type="textarea"
               id="aiTextInput"
@@ -903,6 +1044,7 @@ const AIConfigurationForm = ({ aiText, setAiText }) => {
               placeholder="Paste ALPS configuration JSON, license agreement text, or requirements for AI analysis..."
               value={aiText}
               onChange={(e) => setAiText(e.target.value)}
+              invalid={!validation.isValid}
             />
           </FormGroup>
         </Col>
@@ -922,14 +1064,84 @@ const StepConfiguration = ({
 }) => {
   const [configMode, setConfigMode] = useState('simple'); // 'simple' or 'alps'
   
-  // Validation logic
-  const isSimpleValid = mode === 'simple' && manualData.title && manualData.licensor;
-  const isALPSValid = mode === 'alps' && manualData.devices && manualData.devices.length > 0;
-  const isAIValid = validateAiText(aiText);
+  // Enhanced validation logic with detailed feedback
+  const getValidation = () => {
+    if (mode === 'ai') {
+      const isValid = validateAiText(aiText);
+      return {
+        isValid,
+        warnings: isValid ? [] : ["Please provide at least 10 characters of text"],
+        requiredFields: { hasText: isValid }
+      };
+    }
+    
+    if (configMode === 'simple') {
+      const hasTitle = !!(manualData.title && manualData.title.trim());
+      const hasLicensor = !!(manualData.licensor && manualData.licensor.trim());
+      const hasType = !!manualData.type;
+      const hasDuration = !!(manualData.duration && parseInt(manualData.duration) > 0);
+      const hasRoyaltyRate = !!(manualData.royaltyRate && parseFloat(manualData.royaltyRate) >= 0);
+      const hasTerritory = !!(manualData.territory && manualData.territory.trim());
+      
+      const isValid = hasTitle && hasLicensor;
+      const warnings = [];
+      
+      if (!hasTitle) warnings.push("License title is required");
+      if (!hasLicensor) warnings.push("Licensor name is required");
+      if (!hasType) warnings.push("License type is recommended");
+      if (!hasDuration) warnings.push("Duration is recommended");
+      if (!hasRoyaltyRate) warnings.push("Royalty rate is recommended");
+      if (!hasTerritory) warnings.push("Territory is recommended");
+      
+      return {
+        isValid,
+        warnings,
+        requiredFields: {
+          hasTitle,
+          hasLicensor,
+          hasType,
+          hasDuration,
+          hasRoyaltyRate,
+          hasTerritory
+        }
+      };
+    } else {
+      // ALPS mode validation
+      const hasDevices = !!(manualData.devices && manualData.devices.length > 0);
+      const hasLicensors = !!(manualData.licensors && manualData.licensors.length > 0);
+      const hasIPs = !!(manualData.ips && manualData.ips.length > 0);
+      const allDevicesHaveRules = manualData.devices?.every(device => 
+        device.rules && device.rules.length > 0
+      ) || false;
+      const allDevicesHaveValidPrices = manualData.devices?.every(device => 
+        parseInt(device.price) > 0
+      ) || false;
+      
+      const isValid = hasDevices && hasLicensors && hasIPs && allDevicesHaveRules;
+      const warnings = [];
+      
+      if (!hasDevices) warnings.push("At least one device is required");
+      if (!hasLicensors) warnings.push("At least one licensor is required");
+      if (!hasIPs) warnings.push("At least one IP is required");
+      if (!allDevicesHaveRules) warnings.push("All devices must have at least one rule");
+      if (!allDevicesHaveValidPrices) warnings.push("All devices must have valid prices");
+      
+      return {
+        isValid,
+        warnings,
+        requiredFields: {
+          hasDevices,
+          hasLicensors,
+          hasIPs,
+          allDevicesHaveRules,
+          allDevicesHaveValidPrices
+        }
+      };
+    }
+  };
   
-  const isNextDisabled = mode === 'manual' 
-    ? (configMode === 'simple' ? !isSimpleValid : !isALPSValid)
-    : !isAIValid;
+  const validation = getValidation();
+  const isNextDisabled = !validation.isValid;
 
   return (
     <Card>
@@ -972,11 +1184,13 @@ const StepConfiguration = ({
               <SimpleManualForm 
                 manualData={manualData}
                 setManualData={setManualData}
+                validation={validation}
               />
             ) : (
               <ALPSManualForm 
                 manualData={manualData}
                 setManualData={setManualData}
+                validation={validation}
               />
             )}
           </div>
@@ -984,6 +1198,7 @@ const StepConfiguration = ({
           <AIConfigurationForm 
             aiText={aiText}
             setAiText={setAiText}
+            validation={validation}
           />
         )}
         
@@ -1011,9 +1226,22 @@ const StepConfiguration = ({
 };
 
 // PropTypes
+RequiredField.propTypes = {
+  children: PropTypes.node.isRequired,
+  isRequired: PropTypes.bool,
+};
+
+ValidationStatus.propTypes = {
+  isValid: PropTypes.bool.isRequired,
+  warnings: PropTypes.array,
+  requiredFields: PropTypes.object,
+  mode: PropTypes.string,
+};
+
 SimpleManualForm.propTypes = {
   manualData: PropTypes.object.isRequired,
   setManualData: PropTypes.func.isRequired,
+  validation: PropTypes.object.isRequired,
 };
 
 DeviceRuleForm.propTypes = {
@@ -1043,11 +1271,13 @@ LicensorsIPsManagement.propTypes = {
 ALPSManualForm.propTypes = {
   manualData: PropTypes.object.isRequired,
   setManualData: PropTypes.func.isRequired,
+  validation: PropTypes.object.isRequired,
 };
 
 AIConfigurationForm.propTypes = {
   aiText: PropTypes.string.isRequired,
   setAiText: PropTypes.func.isRequired,
+  validation: PropTypes.object.isRequired,
 };
 
 StepConfiguration.propTypes = {
