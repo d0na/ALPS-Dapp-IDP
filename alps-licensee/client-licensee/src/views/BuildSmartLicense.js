@@ -9,7 +9,6 @@ import {
   StepModeSelection,
   StepConfiguration,
   StepReviewGenerate,
-  generateSmartLicenseJson
 } from "components/build-smart-license";
 
 const STEPS = ["Select Creation Mode", "Configure License", "Review & Generate"];
@@ -21,14 +20,26 @@ class BuildSmartLicense extends React.Component {
       activeStep: 0,
       mode: '',
       manualData: {
-        title: '',
+        name: '',
         licensor: '',
-        type: '',
-        duration: '',
-        royaltyRate: '',
+        licensee: '',
+        durationYears: '',
+        durationDays: '',
         territory: '',
-        ipDescription: '',
-        restrictions: ''
+        ips: '',
+        rules: [],
+        usageBase: {
+          manufactured: '',
+          manufacturedGraph: [],
+          sold: '',
+          soldGraph: [],
+          activated: '',
+          activatedGraph: [],
+          usage: '',
+          usageGraph: []
+        },
+        royaltyRate: '',
+        royaltyRateGraph: []
       },
       aiText: '',
       generatedJson: ''
@@ -56,8 +67,105 @@ class BuildSmartLicense extends React.Component {
 
   generateJson = () => {
     const { mode, manualData, aiText } = this.state;
-    const jsonString = generateSmartLicenseJson(mode, manualData, aiText);
-    this.setState({ generatedJson: jsonString });
+    
+    let jsonData;
+    
+    if (mode === 'manual') {
+      jsonData = {
+        smartLicense: {
+          id: `SL_${Date.now()}`,
+          title: manualData.name,
+          licensor: manualData.licensor,
+          licensee: manualData.licensee,
+          intellectualProperty: {
+            description: manualData.ips,
+            type: "Patent/Copyright/Trademark", // Could be expanded
+          },
+          terms: {
+            duration: {
+              years: parseInt(manualData.durationYears) || 0,
+              days: parseInt(manualData.durationDays) || 0,
+              startDate: "TBD",
+              endDate: "TBD"
+            },
+            territory: manualData.territory,
+            royaltyRate: parseFloat(manualData.royaltyRate) || 0,
+            royaltyRateGraph: manualData.royaltyRateGraph || []
+          },
+          rules: manualData.rules || [],
+          usageBase: {
+            manufactured: parseFloat(manualData.usageBase?.manufactured) || 0,
+            manufacturedGraph: manualData.usageBase?.manufacturedGraph || [],
+            sold: parseFloat(manualData.usageBase?.sold) || 0,
+            soldGraph: manualData.usageBase?.soldGraph || [],
+            activated: parseFloat(manualData.usageBase?.activated) || 0,
+            activatedGraph: manualData.usageBase?.activatedGraph || [],
+            usage: parseFloat(manualData.usageBase?.usage) || 0,
+            usageGraph: manualData.usageBase?.usageGraph || []
+          },
+          status: "draft",
+          createdAt: new Date().toISOString(),
+          blockchain: {
+            network: "ethereum",
+            contractAddress: "TBD",
+            deploymentTx: "TBD"
+          }
+        }
+      };
+    } else {
+      // AI mode - simulate AI processing
+      jsonData = {
+        smartLicense: {
+          id: `SL_AI_${Date.now()}`,
+          title: "AI Generated License",
+          licensor: "Extracted from text",
+          licensee: "TBD",
+          intellectualProperty: {
+            description: "AI analyzed intellectual property from provided text",
+            type: "AI Determined",
+          },
+          terms: {
+            duration: {
+              years: 1, // Default AI suggestion
+              days: 0,
+              startDate: "TBD",
+              endDate: "TBD"
+            },
+            territory: "AI Determined Territory",
+            royaltyRate: 5.0, // Default AI suggestion
+            royaltyRateGraph: []
+          },
+          rules: [],
+          usageBase: {
+            manufactured: 0,
+            manufacturedGraph: [],
+            sold: 0,
+            soldGraph: [],
+            activated: 0,
+            activatedGraph: [],
+            usage: 0,
+            usageGraph: []
+          },
+          aiAnalysis: {
+            inputText: aiText.substring(0, 200) + "...", // Truncated for display
+            confidence: 0.85,
+            extractedEntities: ["Licensor", "Territory", "Duration", "Royalty"],
+            suggestedImprovements: ["Clarify payment terms", "Define territory boundaries"]
+          },
+          status: "draft",
+          createdAt: new Date().toISOString(),
+          blockchain: {
+            network: "ethereum",
+            contractAddress: "TBD",
+            deploymentTx: "TBD"
+          }
+        }
+      };
+    }
+
+    this.setState({ 
+      generatedJson: JSON.stringify(jsonData, null, 2) 
+    });
   };
 
   handleCreateLicense = (jsonData) => {

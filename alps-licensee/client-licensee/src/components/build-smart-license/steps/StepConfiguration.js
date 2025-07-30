@@ -278,6 +278,827 @@ const RoyaltyStructureComponent = ({
   );
 };
 
+// Rules Configuration Component
+const RulesConfiguration = ({ rules, setRules }) => {
+  const [activeRuleIndex, setActiveRuleIndex] = useState(0);
+
+  const addRule = () => {
+    const newRule = {
+      id: Date.now(),
+      name: `Rule ${rules.length + 1}`,
+      validityStart: '',
+      validityEnd: '',
+      evaluationInterval: {
+        years: '',
+        months: '',
+        days: ''
+      },
+      royaltyBase: [
+        { id: Date.now(), type: 'manufactured', oracle: '' }
+      ],
+      royaltyRate: {
+        type: 'lumpsum', // lumpsum, proportional, graphs, custom
+        lumpsumValue: '',
+        proportionalValue: '',
+        proportionalRB: '',
+        customFunc: 'sum',
+        customInputs: [],
+        graphs: [],
+        min: '',
+        max: ''
+      }
+    };
+    setRules([...rules, newRule]);
+  };
+
+  const removeRule = (ruleId) => {
+    setRules(rules.filter(rule => rule.id !== ruleId));
+  };
+
+  const updateRule = (ruleId, field, value) => {
+    setRules(rules.map(rule => 
+      rule.id === ruleId ? { ...rule, [field]: value } : rule
+    ));
+  };
+
+  const updateRuleNested = (ruleId, path, value) => {
+    setRules(rules.map(rule => {
+      if (rule.id === ruleId) {
+        const newRule = { ...rule };
+        const keys = path.split('.');
+        let current = newRule;
+        for (let i = 0; i < keys.length - 1; i++) {
+          current = current[keys[i]];
+        }
+        current[keys[keys.length - 1]] = value;
+        return newRule;
+      }
+      return rule;
+    }));
+  };
+
+  // Royalty Base management
+  const addRoyaltyBase = (ruleId) => {
+    const rule = rules.find(r => r.id === ruleId);
+    const newRB = {
+      id: Date.now(),
+      type: 'manufactured',
+      oracle: ''
+    };
+    updateRuleNested(ruleId, 'royaltyBase', [...rule.royaltyBase, newRB]);
+  };
+
+  const removeRoyaltyBase = (ruleId, rbId) => {
+    const rule = rules.find(r => r.id === ruleId);
+    const newRB = rule.royaltyBase.filter(rb => rb.id !== rbId);
+    updateRuleNested(ruleId, 'royaltyBase', newRB);
+  };
+
+  const updateRoyaltyBase = (ruleId, rbId, field, value) => {
+    const rule = rules.find(r => r.id === ruleId);
+    const newRB = rule.royaltyBase.map(rb => 
+      rb.id === rbId ? { ...rb, [field]: value } : rb
+    );
+    updateRuleNested(ruleId, 'royaltyBase', newRB);
+  };
+
+  // Custom function management with tree structure
+  const addCustomInput = (ruleId, parentPath = '') => {
+    const rule = rules.find(r => r.id === ruleId);
+    const newInput = {
+      id: Date.now(),
+      type: 'constant', // constant, func, rb
+      value: '',
+      func: 'sum',
+      rb: '',
+      inputs: [] // For nested functions
+    };
+    
+    if (parentPath) {
+      // Add to nested function
+      const pathParts = parentPath.split('.');
+      const newInputs = [...rule.royaltyRate.customInputs];
+      let current = newInputs;
+      for (let i = 0; i < pathParts.length - 1; i++) {
+        current = current[parseInt(pathParts[i])].inputs;
+      }
+      current[parseInt(pathParts[pathParts.length - 1])].inputs.push(newInput);
+      updateRuleNested(ruleId, 'royaltyRate.customInputs', newInputs);
+    } else {
+      // Add to main level
+      updateRuleNested(ruleId, 'royaltyRate.customInputs', [...rule.royaltyRate.customInputs, newInput]);
+    }
+  };
+
+  const removeCustomInput = (ruleId, inputIndex, parentPath = '') => {
+    const rule = rules.find(r => r.id === ruleId);
+    let newInputs = [...rule.royaltyRate.customInputs];
+    
+    if (parentPath) {
+      // Remove from nested function
+      const pathParts = parentPath.split('.');
+      let current = newInputs;
+      for (let i = 0; i < pathParts.length - 1; i++) {
+        current = current[parseInt(pathParts[i])].inputs;
+      }
+      current.splice(parseInt(pathParts[pathParts.length - 1]), 1);
+    } else {
+      // Remove from main level
+      newInputs.splice(inputIndex, 1);
+    }
+    
+    updateRuleNested(ruleId, 'royaltyRate.customInputs', newInputs);
+  };
+
+  const updateCustomInput = (ruleId, inputIndex, field, value, parentPath = '') => {
+    const rule = rules.find(r => r.id === ruleId);
+    let newInputs = [...rule.royaltyRate.customInputs];
+    
+    if (parentPath) {
+      // Update nested function
+      const pathParts = parentPath.split('.');
+      let current = newInputs;
+      for (let i = 0; i < pathParts.length - 1; i++) {
+        current = current[parseInt(pathParts[i])].inputs;
+      }
+      current[parseInt(pathParts[pathParts.length - 1])] = { 
+        ...current[parseInt(pathParts[pathParts.length - 1])], 
+        [field]: value 
+      };
+    } else {
+      // Update main level
+      newInputs[inputIndex] = { ...newInputs[inputIndex], [field]: value };
+    }
+    
+    updateRuleNested(ruleId, 'royaltyRate.customInputs', newInputs);
+  };
+
+  const getOperationInputs = (operation) => {
+    switch (operation) {
+      case 'sum': return 2;
+      case 'multiply': return 2;
+      case 'divide': return 2;
+      case 'subtract': return 2;
+      case 'max': return 2;
+      case 'min': return 2;
+      default: return 2;
+    }
+  };
+
+  const renderCustomInputs = (rule, inputs, parentPath = '') => {
+    return inputs.map((input, idx) => (
+      <div key={input.id} style={{ 
+        border: '1px solid #ddd', 
+        padding: '15px', 
+        margin: '10px 0', 
+        borderRadius: '4px',
+        backgroundColor: '#f8f9fa',
+        marginLeft: parentPath ? '20px' : '0'
+      }}>
+        <Row>
+          <Col md="4">
+            <FormGroup>
+              <Label>Input {idx + 1} Type</Label>
+              <Input
+                type="select"
+                value={input.type}
+                onChange={(e) => updateCustomInput(rule.id, idx, 'type', e.target.value, parentPath)}
+              >
+                <option value="constant">Constant</option>
+                <option value="func">Function</option>
+                <option value="rb">Royalty Base</option>
+              </Input>
+            </FormGroup>
+          </Col>
+          <Col md="6">
+            {input.type === 'constant' && (
+              <FormGroup>
+                <Label>Constant Value</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={input.value}
+                  onChange={(e) => updateCustomInput(rule.id, idx, 'value', e.target.value, parentPath)}
+                  placeholder="Enter constant value"
+                />
+              </FormGroup>
+            )}
+            {input.type === 'func' && (
+              <FormGroup>
+                <Label>Function</Label>
+                <Input
+                  type="select"
+                  value={input.func}
+                  onChange={(e) => {
+                    updateCustomInput(rule.id, idx, 'func', e.target.value, parentPath);
+                    const inputsNeeded = getOperationInputs(e.target.value);
+                    const currentInputs = input.inputs.length;
+                    if (currentInputs < inputsNeeded) {
+                      // Add missing inputs
+                      const newInputs = [...input.inputs];
+                      for (let i = currentInputs; i < inputsNeeded; i++) {
+                        newInputs.push({ 
+                          id: Date.now() + i, 
+                          type: 'constant', 
+                          value: '', 
+                          func: 'sum', 
+                          rb: '',
+                          inputs: []
+                        });
+                      }
+                      updateCustomInput(rule.id, idx, 'inputs', newInputs, parentPath);
+                    } else if (currentInputs > inputsNeeded) {
+                      // Remove excess inputs
+                      updateCustomInput(rule.id, idx, 'inputs', input.inputs.slice(0, inputsNeeded), parentPath);
+                    }
+                  }}
+                >
+                  <option value="sum">Sum</option>
+                  <option value="multiply">Multiply</option>
+                  <option value="divide">Divide</option>
+                  <option value="subtract">Subtract</option>
+                  <option value="max">Max</option>
+                  <option value="min">Min</option>
+                </Input>
+              </FormGroup>
+            )}
+            {input.type === 'rb' && (
+              <FormGroup>
+                <Label>Royalty Base</Label>
+                <Input
+                  type="select"
+                  value={input.rb}
+                  onChange={(e) => updateCustomInput(rule.id, idx, 'rb', e.target.value, parentPath)}
+                >
+                  <option value="">Select RB</option>
+                  {rule.royaltyBase.map((rb, rbIdx) => (
+                    <option key={rbIdx} value={rb.type}>{rb.type}</option>
+                  ))}
+                </Input>
+              </FormGroup>
+            )}
+          </Col>
+          <Col md="2">
+            <Button
+              color="danger"
+              size="sm"
+              onClick={() => removeCustomInput(rule.id, idx, parentPath)}
+              style={{ marginTop: '30px' }}
+            >
+              Remove
+            </Button>
+          </Col>
+        </Row>
+        
+        {/* Render nested inputs for functions */}
+        {input.type === 'func' && input.inputs && input.inputs.length > 0 && (
+          <div style={{ marginTop: '15px' }}>
+            <Label>Function Inputs</Label>
+            {renderCustomInputs(rule, input.inputs, parentPath ? `${parentPath}.${idx}` : `${idx}`)}
+            <Button
+              color="info"
+              size="sm"
+              onClick={() => addCustomInput(rule.id, parentPath ? `${parentPath}.${idx}` : `${idx}`)}
+              style={{ marginTop: '10px' }}
+            >
+              Add Nested Input
+            </Button>
+          </div>
+        )}
+      </div>
+    ));
+  };
+
+  const generateRoyaltyRateSummary = (rule) => {
+    const { royaltyRate } = rule;
+    
+    switch (royaltyRate.type) {
+      case 'lumpsum':
+        return `Lumpsum: $${royaltyRate.lumpsumValue || '0'} (Fixed amount)`;
+      
+      case 'proportional':
+        return `Proportional: $${royaltyRate.proportionalValue || '0'} × ${royaltyRate.proportionalRB || 'RB'} (Multiply by Royalty Base)`;
+      
+      case 'graphs': {
+        const graphCount = royaltyRate.graphs.data?.length || 0;
+        return `Graphs: ${graphCount} steps configured (Step-based calculation)`;
+      }
+      
+      case 'custom': {
+        const inputCount = royaltyRate.customInputs?.length || 0;
+        if (inputCount === 0) {
+          return `Custom: ${royaltyRate.customFunc || 'sum'} function (No inputs configured)`;
+        }
+        
+        // Analyze custom inputs to create a detailed description
+        const inputDescriptions = royaltyRate.customInputs.map((input, index) => {
+          switch (input.type) {
+            case 'constant':
+              return `const(${input.value || '0'})`;
+            case 'rb':
+              return `RB(${input.rb || 'none'})`;
+            case 'func': {
+              const nestedInputCount = input.inputs?.length || 0;
+              return `func(${input.func || 'sum'})[${nestedInputCount} inputs]`;
+            }
+            default:
+              return 'unknown';
+          }
+        });
+        
+        const inputsDesc = inputDescriptions.join(' + ');
+        return `Custom: ${royaltyRate.customFunc || 'sum'}(${inputsDesc}) (${inputCount} inputs)`;
+      }
+      
+      default:
+        return 'No royalty rate configured';
+    }
+  };
+
+  const renderRoyaltyRateSection = (rule) => {
+    const { royaltyRate } = rule;
+
+    return (
+      <div>
+        {/* Summary Field */}
+        <Row style={{ marginBottom: '20px' }}>
+          <Col md="12">
+            <FormGroup>
+              <Label>Configuration Summary</Label>
+              <Input
+                type="text"
+                value={generateRoyaltyRateSummary(rule)}
+                readOnly
+                style={{ 
+                  backgroundColor: '#e9ecef', 
+                  fontWeight: 'bold',
+                  color: '#495057'
+                }}
+              />
+            </FormGroup>
+          </Col>
+        </Row>
+
+        <Row>
+          <Col md="6">
+            <FormGroup>
+              <Label>Royalty Rate Type</Label>
+              <Input
+                type="select"
+                value={royaltyRate.type}
+                onChange={(e) => updateRuleNested(rule.id, 'royaltyRate.type', e.target.value)}
+              >
+                <option value="lumpsum">Lumpsum</option>
+                <option value="proportional">Proportional</option>
+                <option value="graphs">Graphs</option>
+                <option value="custom">Custom</option>
+              </Input>
+            </FormGroup>
+          </Col>
+          <Col md="3">
+            <FormGroup>
+              <Label>Min Value</Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={royaltyRate.min || ''}
+                onChange={(e) => updateRuleNested(rule.id, 'royaltyRate.min', e.target.value)}
+                placeholder="Min value"
+              />
+            </FormGroup>
+          </Col>
+          <Col md="3">
+            <FormGroup>
+              <Label>Max Value</Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={royaltyRate.max || ''}
+                onChange={(e) => updateRuleNested(rule.id, 'royaltyRate.max', e.target.value)}
+                placeholder="Max value"
+              />
+            </FormGroup>
+          </Col>
+        </Row>
+
+        {royaltyRate.type === 'lumpsum' && (
+          <FormGroup>
+            <Label>Lumpsum Value ($)</Label>
+            <Input
+              type="number"
+              step="0.01"
+              min="0"
+              value={royaltyRate.lumpsumValue}
+              onChange={(e) => updateRuleNested(rule.id, 'royaltyRate.lumpsumValue', e.target.value)}
+              placeholder="Enter lumpsum value"
+            />
+          </FormGroup>
+        )}
+
+        {royaltyRate.type === 'proportional' && (
+          <Row>
+            <Col md="6">
+              <FormGroup>
+                <Label>Value ($)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={royaltyRate.proportionalValue}
+                  onChange={(e) => updateRuleNested(rule.id, 'royaltyRate.proportionalValue', e.target.value)}
+                  placeholder="Enter value"
+                />
+              </FormGroup>
+            </Col>
+            <Col md="6">
+              <FormGroup>
+                <Label>Royalty Base (Multiply)</Label>
+                <Input
+                  type="select"
+                  value={royaltyRate.proportionalRB}
+                  onChange={(e) => updateRuleNested(rule.id, 'royaltyRate.proportionalRB', e.target.value)}
+                >
+                  <option value="">Select RB</option>
+                  {rule.royaltyBase.map((rb, idx) => (
+                    <option key={idx} value={rb.type}>{rb.type}</option>
+                  ))}
+                </Input>
+              </FormGroup>
+            </Col>
+          </Row>
+        )}
+
+        {royaltyRate.type === 'graphs' && (
+          <RoyaltyStructureComponent
+            title="Graph Royalty Rate"
+            value={royaltyRate.graphs.value || ''}
+            onChange={(value) => updateRuleNested(rule.id, 'royaltyRate.graphs.value', value)}
+            type="percentage"
+            graphData={royaltyRate.graphs.data || []}
+            onGraphDataChange={(graphData) => updateRuleNested(rule.id, 'royaltyRate.graphs.data', graphData)}
+            unitLabel="Units"
+          />
+        )}
+
+        {royaltyRate.type === 'custom' && (
+          <div>
+            <Row>
+              <Col md="6">
+                <FormGroup>
+                  <Label>Function</Label>
+                  <Input
+                    type="select"
+                    value={royaltyRate.customFunc}
+                    onChange={(e) => {
+                      updateRuleNested(rule.id, 'royaltyRate.customFunc', e.target.value);
+                      const inputsNeeded = getOperationInputs(e.target.value);
+                      const currentInputs = royaltyRate.customInputs.length;
+                      if (currentInputs < inputsNeeded) {
+                        // Add missing inputs
+                        const newInputs = [...royaltyRate.customInputs];
+                        for (let i = currentInputs; i < inputsNeeded; i++) {
+                          newInputs.push({ 
+                            id: Date.now() + i, 
+                            type: 'constant', 
+                            value: '', 
+                            func: 'sum', 
+                            rb: '',
+                            inputs: []
+                          });
+                        }
+                        updateRuleNested(rule.id, 'royaltyRate.customInputs', newInputs);
+                      } else if (currentInputs > inputsNeeded) {
+                        // Remove excess inputs
+                        updateRuleNested(rule.id, 'royaltyRate.customInputs', royaltyRate.customInputs.slice(0, inputsNeeded));
+                      }
+                    }}
+                  >
+                    <option value="sum">Sum</option>
+                    <option value="multiply">Multiply</option>
+                    <option value="divide">Divide</option>
+                    <option value="subtract">Subtract</option>
+                    <option value="max">Max</option>
+                    <option value="min">Min</option>
+                  </Input>
+                </FormGroup>
+              </Col>
+            </Row>
+
+            <div style={{ marginTop: '20px' }}>
+              <Label>Function Inputs</Label>
+              {renderCustomInputs(rule, royaltyRate.customInputs)}
+              <Button
+                color="info"
+                size="sm"
+                onClick={() => addCustomInput(rule.id)}
+                style={{ marginTop: '10px' }}
+              >
+                Add Input
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const resetRule = (ruleId) => {
+    const rule = rules.find(r => r.id === ruleId);
+    const resetRule = {
+      ...rule,
+      name: '',
+      validityStart: '',
+      validityEnd: '',
+      evaluationInterval: {
+        years: '',
+        months: '',
+        days: ''
+      },
+      royaltyBase: [
+        { id: Date.now(), type: 'manufactured', oracle: '' }
+      ],
+      royaltyRate: {
+        type: 'lumpsum',
+        lumpsumValue: '',
+        proportionalValue: '',
+        proportionalRB: '',
+        customFunc: 'sum',
+        customInputs: [],
+        graphs: [],
+        min: '',
+        max: ''
+      }
+    };
+    updateRule(ruleId, '', resetRule);
+  };
+
+  const resetAllRules = () => {
+    setRules([]);
+  };
+
+  return (
+    <Card style={{ marginBottom: '20px' }}>
+      <CardHeader>
+        <CardTitle tag="h6">
+          <RequiredField>Rules Configuration</RequiredField>
+        </CardTitle>
+      </CardHeader>
+      <CardBody>
+        {rules.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '20px' }}>
+            <p>No rules configured yet.</p>
+            <Button color="primary" onClick={addRule}>
+              Add First Rule
+            </Button>
+          </div>
+        ) : (
+          <div>
+            <Row style={{ marginBottom: '20px' }}>
+              <Col md="8">
+                <Button color="primary" onClick={addRule} style={{ marginRight: '10px' }}>
+                  Add Rule
+                </Button>
+                <Button color="warning" onClick={resetAllRules} style={{ marginRight: '10px' }}>
+                  Reset All Rules
+                </Button>
+                <small>Total Rules: {rules.length}</small>
+              </Col>
+            </Row>
+
+            <Nav tabs>
+              {rules.map((rule, index) => (
+                <NavItem key={rule.id}>
+                  <NavLink
+                    className={activeRuleIndex === index ? 'active' : ''}
+                    onClick={() => setActiveRuleIndex(index)}
+                  >
+                    {rule.name || `Rule ${index + 1}`}
+                  </NavLink>
+                </NavItem>
+              ))}
+            </Nav>
+
+            <TabContent activeTab={activeRuleIndex}>
+              {rules.map((rule, index) => (
+                <TabPane key={rule.id} tabId={index}>
+                  <div style={{ padding: '20px 0' }}>
+                    
+                    {/* Basic Information Section */}
+                    <div style={{ 
+                      border: '2px solid #e9ecef', 
+                      borderRadius: '8px', 
+                      padding: '20px', 
+                      marginBottom: '20px',
+                      backgroundColor: '#f8f9fa'
+                    }}>
+                      <h6 style={{ color: '#495057', marginBottom: '15px', borderBottom: '1px solid #dee2e6', paddingBottom: '8px' }}>
+                        Basic Information
+                      </h6>
+                      <Row>
+                        <Col md="8">
+                          <FormGroup>
+                            <Label>Rule Name</Label>
+                            <Input
+                              type="text"
+                              value={rule.name}
+                              onChange={(e) => updateRule(rule.id, 'name', e.target.value)}
+                              placeholder="Enter rule name"
+                            />
+                          </FormGroup>
+                        </Col>
+                        <Col md="4">
+                          <Button
+                            color="danger"
+                            onClick={() => removeRule(rule.id)}
+                            disabled={rules.length === 1}
+                            style={{ marginTop: '30px' }}
+                          >
+                            Remove Rule
+                          </Button>
+                        </Col>
+                      </Row>
+
+                      <Row>
+                        <Col md="6">
+                          <FormGroup>
+                            <Label>Validity Start Date</Label>
+                            <Input
+                              type="date"
+                              value={rule.validityStart}
+                              onChange={(e) => updateRule(rule.id, 'validityStart', e.target.value)}
+                            />
+                          </FormGroup>
+                        </Col>
+                        <Col md="6">
+                          <FormGroup>
+                            <Label>Validity End Date</Label>
+                            <Input
+                              type="date"
+                              value={rule.validityEnd}
+                              onChange={(e) => updateRule(rule.id, 'validityEnd', e.target.value)}
+                            />
+                          </FormGroup>
+                        </Col>
+                      </Row>
+                    </div>
+
+                    {/* Royalty Evaluation Interval Section */}
+                    <div style={{ 
+                      border: '2px solid #e9ecef', 
+                      borderRadius: '8px', 
+                      padding: '20px', 
+                      marginBottom: '20px',
+                      backgroundColor: '#f8f9fa'
+                    }}>
+                      <h6 style={{ color: '#495057', marginBottom: '15px', borderBottom: '1px solid #dee2e6', paddingBottom: '8px' }}>
+                        Royalty Evaluation Interval
+                      </h6>
+                      <Row>
+                        <Col md="4">
+                          <FormGroup>
+                            <Label>Years</Label>
+                            <Input
+                              type="number"
+                              min="0"
+                              value={rule.evaluationInterval.years}
+                              onChange={(e) => updateRuleNested(rule.id, 'evaluationInterval.years', e.target.value)}
+                              placeholder="0"
+                            />
+                          </FormGroup>
+                        </Col>
+                        <Col md="4">
+                          <FormGroup>
+                            <Label>Months</Label>
+                            <Input
+                              type="number"
+                              min="0"
+                              max="11"
+                              value={rule.evaluationInterval.months}
+                              onChange={(e) => updateRuleNested(rule.id, 'evaluationInterval.months', e.target.value)}
+                              placeholder="0"
+                            />
+                          </FormGroup>
+                        </Col>
+                        <Col md="4">
+                          <FormGroup>
+                            <Label>Days</Label>
+                            <Input
+                              type="number"
+                              min="0"
+                              max="30"
+                              value={rule.evaluationInterval.days}
+                              onChange={(e) => updateRuleNested(rule.id, 'evaluationInterval.days', e.target.value)}
+                              placeholder="0"
+                            />
+                          </FormGroup>
+                        </Col>
+                      </Row>
+                    </div>
+
+                    {/* Royalty Base Section */}
+                    <div style={{ 
+                      border: '2px solid #e9ecef', 
+                      borderRadius: '8px', 
+                      padding: '20px', 
+                      marginBottom: '20px',
+                      backgroundColor: '#f8f9fa'
+                    }}>
+                      <h6 style={{ color: '#495057', marginBottom: '15px', borderBottom: '1px solid #dee2e6', paddingBottom: '8px' }}>
+                        Royalty Base (RB)
+                      </h6>
+                      <Row>
+                        <Col md="12">
+                          <Button
+                            color="info"
+                            size="sm"
+                            onClick={() => addRoyaltyBase(rule.id)}
+                            style={{ marginBottom: '15px' }}
+                          >
+                            Add RB
+                          </Button>
+                        </Col>
+                      </Row>
+                      {rule.royaltyBase.map((rb, rbIndex) => (
+                        <Row key={rb.id}>
+                          <Col md="5">
+                            <FormGroup>
+                              <Label>Type</Label>
+                              <Input
+                                type="select"
+                                value={rb.type}
+                                onChange={(e) => updateRoyaltyBase(rule.id, rb.id, 'type', e.target.value)}
+                              >
+                                <option value="manufactured">Manufactured</option>
+                                <option value="sold">Sold</option>
+                                <option value="activated">Activated</option>
+                                <option value="time">Time</option>
+                                <option value="usage">Usage</option>
+                              </Input>
+                            </FormGroup>
+                          </Col>
+                          <Col md="5">
+                            <FormGroup>
+                              <Label>Oracle Address</Label>
+                              <Input
+                                type="text"
+                                value={rb.oracle}
+                                onChange={(e) => updateRoyaltyBase(rule.id, rb.id, 'oracle', e.target.value)}
+                                placeholder="Enter Oracle address"
+                              />
+                            </FormGroup>
+                          </Col>
+                          <Col md="2">
+                            <Button
+                              color="danger"
+                              size="sm"
+                              onClick={() => removeRoyaltyBase(rule.id, rb.id)}
+                              style={{ marginTop: '30px' }}
+                              disabled={rule.royaltyBase.length === 1}
+                            >
+                              Remove
+                            </Button>
+                          </Col>
+                        </Row>
+                      ))}
+                    </div>
+
+                    {/* Royalty Rate Section */}
+                    <div style={{ 
+                      border: '2px solid #e9ecef', 
+                      borderRadius: '8px', 
+                      padding: '20px', 
+                      marginBottom: '20px',
+                      backgroundColor: '#f8f9fa'
+                    }}>
+                      <h6 style={{ color: '#495057', marginBottom: '15px', borderBottom: '1px solid #dee2e6', paddingBottom: '8px' }}>
+                        Royalty Rate
+                      </h6>
+                      {renderRoyaltyRateSection(rule)}
+                    </div>
+
+                    {/* Reset Button */}
+                    <Row>
+                      <Col md="12" style={{ textAlign: 'center' }}>
+                        <Button
+                          color="warning"
+                          onClick={() => resetRule(rule.id)}
+                          style={{ marginTop: '10px' }}
+                        >
+                          Reset This Rule
+                        </Button>
+                      </Col>
+                    </Row>
+                  </div>
+                </TabPane>
+              ))}
+            </TabContent>
+          </div>
+        )}
+      </CardBody>
+    </Card>
+  );
+};
+
 // Manual Configuration Form
 const ManualConfigurationForm = ({ manualData, setManualData, validation }) => {
   const updateManualData = (field, value) => {
@@ -445,6 +1266,12 @@ const ManualConfigurationForm = ({ manualData, setManualData, validation }) => {
           </FormGroup>
         </Col>
       </Row>
+
+      {/* Rules Configuration */}
+      <RulesConfiguration 
+        rules={manualData.rules || []}
+        setRules={(rules) => updateManualData('rules', rules)}
+      />
 
       {/* Usage Base Configuration */}
       <Card style={{ marginBottom: '20px' }}>
@@ -728,6 +1555,44 @@ ManualConfigurationForm.propTypes = {
   manualData: PropTypes.object.isRequired,
   setManualData: PropTypes.func.isRequired,
   validation: PropTypes.object.isRequired,
+};
+
+RulesConfiguration.propTypes = {
+  rules: PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    name: PropTypes.string.isRequired,
+    validityStart: PropTypes.string,
+    validityEnd: PropTypes.string,
+    evaluationInterval: PropTypes.shape({
+      years: PropTypes.string,
+      months: PropTypes.string,
+      days: PropTypes.string
+    }),
+    royaltyBase: PropTypes.arrayOf(PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      type: PropTypes.string.isRequired,
+      oracle: PropTypes.string
+    })),
+    royaltyRate: PropTypes.shape({
+      type: PropTypes.oneOf(['lumpsum', 'proportional', 'graphs', 'custom']),
+      lumpsumValue: PropTypes.string,
+      proportionalValue: PropTypes.string,
+      proportionalRB: PropTypes.string,
+      customFunc: PropTypes.string,
+      customInputs: PropTypes.arrayOf(PropTypes.shape({
+        id: PropTypes.number.isRequired,
+        type: PropTypes.oneOf(['constant', 'func', 'rb']),
+        value: PropTypes.string,
+        func: PropTypes.string,
+        rb: PropTypes.string,
+        inputs: PropTypes.array // For nested functions
+      })),
+      graphs: PropTypes.object,
+      min: PropTypes.string,
+      max: PropTypes.string
+    })
+  })).isRequired,
+  setRules: PropTypes.func.isRequired,
 };
 
 AIConfigurationForm.propTypes = {
