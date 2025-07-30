@@ -247,11 +247,12 @@ const RoyaltyStructureComponent = ({
                         <Tooltip />
                         <Legend />
                         <Line 
-                          type="monotone" 
+                          type="stepAfter" 
                           dataKey={type === 'percentage' ? 'Percentage' : 'Amount'} 
                           stroke="#8884d8" 
                           strokeWidth={2}
-                          curve="cardinal"
+                          dot={{ fill: '#8884d8', strokeWidth: 2, r: 4 }}
+                          activeDot={{ r: 6, stroke: '#8884d8', strokeWidth: 2, fill: '#fff' }}
                         />
                       </LineChart>
                     </ResponsiveContainer>
