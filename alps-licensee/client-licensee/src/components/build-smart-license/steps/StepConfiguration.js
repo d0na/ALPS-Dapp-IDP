@@ -251,6 +251,7 @@ const RoyaltyStructureComponent = ({
                           dataKey={type === 'percentage' ? 'Percentage' : 'Amount'} 
                           stroke="#8884d8" 
                           strokeWidth={2}
+                          curve="cardinal"
                         />
                       </LineChart>
                     </ResponsiveContainer>
