@@ -883,19 +883,21 @@ const RulesConfiguration = ({ rules, setRules }) => {
                 <TabPane key={rule.id} tabId={index}>
                   <div style={{ padding: '20px 0' }}>
                     
-                    {/* Basic Information Section */}
-                    <div style={{ 
-                      border: '2px solid #e9ecef', 
-                      borderRadius: '8px', 
-                      padding: '20px', 
-                      marginBottom: '20px',
-                      backgroundColor: '#f8f9fa'
-                    }}>
-                      <h6 style={{ color: '#495057', marginBottom: '15px', borderBottom: '1px solid #dee2e6', paddingBottom: '8px' }}>
-                        Basic Information
-                      </h6>
-                      <Row>
-                        <Col md="8">
+                    {/* Basic Information and Royalty Evaluation Interval - Side by Side */}
+                    <Row>
+                      <Col md="6">
+                        {/* Basic Information Section */}
+                        <div style={{ 
+                          border: '2px solid #e9ecef', 
+                          borderRadius: '8px', 
+                          padding: '20px', 
+                          marginBottom: '20px',
+                          backgroundColor: '#f8f9fa',
+                          height: '100%'
+                        }}>
+                          <h6 style={{ color: '#495057', marginBottom: '15px', borderBottom: '1px solid #dee2e6', paddingBottom: '8px' }}>
+                            Basic Information
+                          </h6>
                           <FormGroup>
                             <Label>Rule Name</Label>
                             <Input
@@ -905,109 +907,113 @@ const RulesConfiguration = ({ rules, setRules }) => {
                               placeholder="Enter rule name"
                             />
                           </FormGroup>
-                        </Col>
-                        <Col md="4">
+
+                          <Row>
+                            <Col md="6">
+                              <FormGroup>
+                                <Label>Validity Start Date</Label>
+                                <Input
+                                  type="date"
+                                  value={rule.validityStart}
+                                  onChange={(e) => updateRule(rule.id, 'validityStart', e.target.value)}
+                                />
+                              </FormGroup>
+                            </Col>
+                            <Col md="6">
+                              <FormGroup>
+                                <Label>Validity End Date</Label>
+                                <Input
+                                  type="date"
+                                  value={rule.validityEnd}
+                                  onChange={(e) => updateRule(rule.id, 'validityEnd', e.target.value)}
+                                />
+                              </FormGroup>
+                            </Col>
+                          </Row>
+
                           <Button
                             color="danger"
                             onClick={() => removeRule(rule.id)}
                             disabled={rules.length === 1}
-                            style={{ marginTop: '30px' }}
+                            style={{ marginTop: '10px' }}
                           >
                             Remove Rule
                           </Button>
-                        </Col>
-                      </Row>
+                        </div>
+                      </Col>
 
-                      <Row>
-                        <Col md="6">
-                          <FormGroup>
-                            <Label>Validity Start Date</Label>
-                            <Input
-                              type="date"
-                              value={rule.validityStart}
-                              onChange={(e) => updateRule(rule.id, 'validityStart', e.target.value)}
-                            />
-                          </FormGroup>
-                        </Col>
-                        <Col md="6">
-                          <FormGroup>
-                            <Label>Validity End Date</Label>
-                            <Input
-                              type="date"
-                              value={rule.validityEnd}
-                              onChange={(e) => updateRule(rule.id, 'validityEnd', e.target.value)}
-                            />
-                          </FormGroup>
-                        </Col>
-                      </Row>
-                    </div>
+                      <Col md="6">
+                        {/* Royalty Evaluation Interval Section */}
+                        <div style={{ 
+                          border: '2px solid #e9ecef', 
+                          borderRadius: '8px', 
+                          padding: '20px', 
+                          marginBottom: '20px',
+                          backgroundColor: '#f8f9fa',
+                          height: '100%'
+                        }}>
+                          <h6 style={{ color: '#495057', marginBottom: '15px', borderBottom: '1px solid #dee2e6', paddingBottom: '8px' }}>
+                            Royalty Evaluation Interval
+                          </h6>
+                          <Row>
+                            <Col md="4">
+                              <FormGroup>
+                                <Label>Years</Label>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  value={rule.evaluationInterval.years}
+                                  onChange={(e) => updateRuleNested(rule.id, 'evaluationInterval.years', e.target.value)}
+                                  placeholder="0"
+                                />
+                              </FormGroup>
+                            </Col>
+                            <Col md="4">
+                              <FormGroup>
+                                <Label>Months</Label>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  max="11"
+                                  value={rule.evaluationInterval.months}
+                                  onChange={(e) => updateRuleNested(rule.id, 'evaluationInterval.months', e.target.value)}
+                                  placeholder="0"
+                                />
+                              </FormGroup>
+                            </Col>
+                            <Col md="4">
+                              <FormGroup>
+                                <Label>Days</Label>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  max="30"
+                                  value={rule.evaluationInterval.days}
+                                  onChange={(e) => updateRuleNested(rule.id, 'evaluationInterval.days', e.target.value)}
+                                  placeholder="0"
+                                />
+                              </FormGroup>
+                            </Col>
+                          </Row>
+                        </div>
+                      </Col>
+                    </Row>
 
-                    {/* Royalty Evaluation Interval Section */}
-                    <div style={{ 
-                      border: '2px solid #e9ecef', 
-                      borderRadius: '8px', 
-                      padding: '20px', 
-                      marginBottom: '20px',
-                      backgroundColor: '#f8f9fa'
-                    }}>
-                      <h6 style={{ color: '#495057', marginBottom: '15px', borderBottom: '1px solid #dee2e6', paddingBottom: '8px' }}>
-                        Royalty Evaluation Interval
-                      </h6>
-                      <Row>
-                        <Col md="4">
-                          <FormGroup>
-                            <Label>Years</Label>
-                            <Input
-                              type="number"
-                              min="0"
-                              value={rule.evaluationInterval.years}
-                              onChange={(e) => updateRuleNested(rule.id, 'evaluationInterval.years', e.target.value)}
-                              placeholder="0"
-                            />
-                          </FormGroup>
-                        </Col>
-                        <Col md="4">
-                          <FormGroup>
-                            <Label>Months</Label>
-                            <Input
-                              type="number"
-                              min="0"
-                              max="11"
-                              value={rule.evaluationInterval.months}
-                              onChange={(e) => updateRuleNested(rule.id, 'evaluationInterval.months', e.target.value)}
-                              placeholder="0"
-                            />
-                          </FormGroup>
-                        </Col>
-                        <Col md="4">
-                          <FormGroup>
-                            <Label>Days</Label>
-                            <Input
-                              type="number"
-                              min="0"
-                              max="30"
-                              value={rule.evaluationInterval.days}
-                              onChange={(e) => updateRuleNested(rule.id, 'evaluationInterval.days', e.target.value)}
-                              placeholder="0"
-                            />
-                          </FormGroup>
-                        </Col>
-                      </Row>
-                    </div>
-
-                    {/* Royalty Base Section */}
-                    <div style={{ 
-                      border: '2px solid #e9ecef', 
-                      borderRadius: '8px', 
-                      padding: '20px', 
-                      marginBottom: '20px',
-                      backgroundColor: '#f8f9fa'
-                    }}>
-                      <h6 style={{ color: '#495057', marginBottom: '15px', borderBottom: '1px solid #dee2e6', paddingBottom: '8px' }}>
-                        Royalty Base (RB)
-                      </h6>
-                      <Row>
-                        <Col md="12">
+                    {/* Royalty Base and Royalty Rate - Side by Side */}
+                    <Row>
+                      <Col md="6">
+                        {/* Royalty Base Section */}
+                        <div style={{ 
+                          border: '2px solid #e9ecef', 
+                          borderRadius: '8px', 
+                          padding: '20px', 
+                          marginBottom: '20px',
+                          backgroundColor: '#f8f9fa',
+                          height: '100%'
+                        }}>
+                          <h6 style={{ color: '#495057', marginBottom: '15px', borderBottom: '1px solid #dee2e6', paddingBottom: '8px' }}>
+                            Royalty Base (RB)
+                          </h6>
                           <Button
                             color="info"
                             size="sm"
@@ -1016,65 +1022,68 @@ const RulesConfiguration = ({ rules, setRules }) => {
                           >
                             Add RB
                           </Button>
-                        </Col>
-                      </Row>
-                      {rule.royaltyBase.map((rb, rbIndex) => (
-                        <Row key={rb.id}>
-                          <Col md="5">
-                            <FormGroup>
-                              <Label>Type</Label>
-                              <Input
-                                type="select"
-                                value={rb.type}
-                                onChange={(e) => updateRoyaltyBase(rule.id, rb.id, 'type', e.target.value)}
-                              >
-                                <option value="manufactured">Manufactured</option>
-                                <option value="sold">Sold</option>
-                                <option value="activated">Activated</option>
-                                <option value="time">Time</option>
-                                <option value="usage">Usage</option>
-                              </Input>
-                            </FormGroup>
-                          </Col>
-                          <Col md="5">
-                            <FormGroup>
-                              <Label>Oracle Address</Label>
-                              <Input
-                                type="text"
-                                value={rb.oracle}
-                                onChange={(e) => updateRoyaltyBase(rule.id, rb.id, 'oracle', e.target.value)}
-                                placeholder="Enter Oracle address"
-                              />
-                            </FormGroup>
-                          </Col>
-                          <Col md="2">
-                            <Button
-                              color="danger"
-                              size="sm"
-                              onClick={() => removeRoyaltyBase(rule.id, rb.id)}
-                              style={{ marginTop: '30px' }}
-                              disabled={rule.royaltyBase.length === 1}
-                            >
-                              Remove
-                            </Button>
-                          </Col>
-                        </Row>
-                      ))}
-                    </div>
+                          {rule.royaltyBase.map((rb, rbIndex) => (
+                            <Row key={rb.id}>
+                              <Col md="5">
+                                <FormGroup>
+                                  <Label>Type</Label>
+                                  <Input
+                                    type="select"
+                                    value={rb.type}
+                                    onChange={(e) => updateRoyaltyBase(rule.id, rb.id, 'type', e.target.value)}
+                                  >
+                                    <option value="manufactured">Manufactured</option>
+                                    <option value="sold">Sold</option>
+                                    <option value="activated">Activated</option>
+                                    <option value="time">Time</option>
+                                    <option value="usage">Usage</option>
+                                  </Input>
+                                </FormGroup>
+                              </Col>
+                              <Col md="5">
+                                <FormGroup>
+                                  <Label>Oracle Address</Label>
+                                  <Input
+                                    type="text"
+                                    value={rb.oracle}
+                                    onChange={(e) => updateRoyaltyBase(rule.id, rb.id, 'oracle', e.target.value)}
+                                    placeholder="Enter Oracle address"
+                                  />
+                                </FormGroup>
+                              </Col>
+                              <Col md="2">
+                                <Button
+                                  color="danger"
+                                  size="sm"
+                                  onClick={() => removeRoyaltyBase(rule.id, rb.id)}
+                                  style={{ marginTop: '30px' }}
+                                  disabled={rule.royaltyBase.length === 1}
+                                >
+                                  Remove
+                                </Button>
+                              </Col>
+                            </Row>
+                          ))}
+                        </div>
+                      </Col>
 
-                    {/* Royalty Rate Section */}
-                    <div style={{ 
-                      border: '2px solid #e9ecef', 
-                      borderRadius: '8px', 
-                      padding: '20px', 
-                      marginBottom: '20px',
-                      backgroundColor: '#f8f9fa'
-                    }}>
-                      <h6 style={{ color: '#495057', marginBottom: '15px', borderBottom: '1px solid #dee2e6', paddingBottom: '8px' }}>
-                        Royalty Rate
-                      </h6>
-                      {renderRoyaltyRateSection(rule)}
-                    </div>
+                      <Col md="6">
+                        {/* Royalty Rate Section */}
+                        <div style={{ 
+                          border: '2px solid #e9ecef', 
+                          borderRadius: '8px', 
+                          padding: '20px', 
+                          marginBottom: '20px',
+                          backgroundColor: '#f8f9fa',
+                          height: '100%'
+                        }}>
+                          <h6 style={{ color: '#495057', marginBottom: '15px', borderBottom: '1px solid #dee2e6', paddingBottom: '8px' }}>
+                            Royalty Rate
+                          </h6>
+                          {renderRoyaltyRateSection(rule)}
+                        </div>
+                      </Col>
+                    </Row>
 
                     {/* Reset Button */}
                     <Row>
