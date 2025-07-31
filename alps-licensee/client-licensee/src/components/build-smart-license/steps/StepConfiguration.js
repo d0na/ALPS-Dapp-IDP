@@ -418,16 +418,37 @@ const RulesConfiguration = ({ rules, setRules }) => {
       // Update nested function
       const pathParts = parentPath.split('.');
       let current = newInputs;
+      
+      // Navigate to the parent level
       for (let i = 0; i < pathParts.length - 1; i++) {
-        current = current[parseInt(pathParts[i])].inputs;
+        const pathIndex = parseInt(pathParts[i]);
+        if (current[pathIndex] && current[pathIndex].inputs) {
+          current = current[pathIndex].inputs;
+        } else {
+          console.error('Invalid path:', parentPath);
+          return;
+        }
       }
-      current[parseInt(pathParts[pathParts.length - 1])] = { 
-        ...current[parseInt(pathParts[pathParts.length - 1])], 
-        [field]: value 
-      };
+      
+      // Update the target input
+      const targetIndex = parseInt(pathParts[pathParts.length - 1]);
+      if (current[targetIndex]) {
+        current[targetIndex] = { 
+          ...current[targetIndex], 
+          [field]: value 
+        };
+      } else {
+        console.error('Target input not found:', targetIndex);
+        return;
+      }
     } else {
       // Update main level
-      newInputs[inputIndex] = { ...newInputs[inputIndex], [field]: value };
+      if (newInputs[inputIndex]) {
+        newInputs[inputIndex] = { ...newInputs[inputIndex], [field]: value };
+      } else {
+        console.error('Main level input not found:', inputIndex);
+        return;
+      }
     }
     
     updateRuleNested(ruleId, 'royaltyRate.customInputs', newInputs);
@@ -446,6 +467,9 @@ const RulesConfiguration = ({ rules, setRules }) => {
   };
 
   const renderCustomInputs = (rule, inputs, parentPath = '') => {
+    const depth = parentPath ? parentPath.split('.').length : 0;
+    const indentLevel = depth * 20;
+    
     return inputs.map((input, idx) => (
       <div key={input.id} style={{ 
         border: '1px solid #ddd', 
@@ -453,8 +477,21 @@ const RulesConfiguration = ({ rules, setRules }) => {
         margin: '10px 0', 
         borderRadius: '4px',
         backgroundColor: '#f8f9fa',
-        marginLeft: parentPath ? '20px' : '0'
+        marginLeft: `${indentLevel}px`,
+        borderLeft: depth > 0 ? '3px solid #007bff' : '1px solid #ddd'
       }}>
+        {/* Level indicator */}
+        {depth > 0 && (
+          <div style={{ 
+            marginBottom: '10px', 
+            fontSize: '12px', 
+            color: '#6c757d',
+            fontWeight: 'bold'
+          }}>
+            ↳ Level {depth} - Input {idx + 1}
+          </div>
+        )}
+        
         <Row>
           <Col md="4">
             <FormGroup>
@@ -462,7 +499,26 @@ const RulesConfiguration = ({ rules, setRules }) => {
               <Input
                 type="select"
                 value={input.type}
-                onChange={(e) => updateCustomInput(rule.id, idx, 'type', e.target.value, parentPath)}
+                onChange={(e) => {
+                  updateCustomInput(rule.id, idx, 'type', e.target.value, parentPath);
+                  
+                  // If selecting "Function", automatically create the required inputs
+                  if (e.target.value === 'func') {
+                    const inputsNeeded = getOperationInputs('sum'); // Default to sum function
+                    const newInputs = [];
+                    for (let i = 0; i < inputsNeeded; i++) {
+                      newInputs.push({ 
+                        id: Date.now() + i, 
+                        type: 'constant', 
+                        value: '', 
+                        func: 'sum', 
+                        rb: '',
+                        inputs: []
+                      });
+                    }
+                    updateCustomInput(rule.id, idx, 'inputs', newInputs, parentPath);
+                  }
+                }}
               >
                 <option value="constant">Constant</option>
                 <option value="func">Function</option>
@@ -528,7 +584,40 @@ const RulesConfiguration = ({ rules, setRules }) => {
                 <Input
                   type="select"
                   value={input.rb}
-                  onChange={(e) => updateCustomInput(rule.id, idx, 'rb', e.target.value, parentPath)}
+                  onChange={(e) => {
+                    try {
+                      updateCustomInput(rule.id, idx, 'rb', e.target.value, parentPath);
+                    } catch (error) {
+                      console.error('Error updating Royalty Base:', error);
+                      // Fallback: update the input directly without path navigation
+                      const rule = rules.find(r => r.id === rule.id);
+                      if (rule && rule.royaltyRate && rule.royaltyRate.customInputs) {
+                        const newInputs = [...rule.royaltyRate.customInputs];
+                        if (parentPath) {
+                          // Simple fallback for nested inputs
+                          const pathParts = parentPath.split('.');
+                          let current = newInputs;
+                          for (let i = 0; i < pathParts.length - 1; i++) {
+                            const pathIndex = parseInt(pathParts[i]);
+                            if (current[pathIndex] && current[pathIndex].inputs) {
+                              current = current[pathIndex].inputs;
+                            }
+                          }
+                          const targetIndex = parseInt(pathParts[pathParts.length - 1]);
+                          if (current[targetIndex]) {
+                            current[targetIndex].rb = e.target.value;
+                            updateRuleNested(rule.id, 'royaltyRate.customInputs', newInputs);
+                          }
+                        } else {
+                          // Main level fallback
+                          if (newInputs[idx]) {
+                            newInputs[idx].rb = e.target.value;
+                            updateRuleNested(rule.id, 'royaltyRate.customInputs', newInputs);
+                          }
+                        }
+                      }
+                    }
+                  }}
                 >
                   <option value="">Select RB</option>
                   {rule.royaltyBase.map((rb, rbIdx) => (
@@ -553,7 +642,17 @@ const RulesConfiguration = ({ rules, setRules }) => {
         {/* Render nested inputs for functions */}
         {input.type === 'func' && input.inputs && input.inputs.length > 0 && (
           <div style={{ marginTop: '15px' }}>
-            <Label>Function Inputs</Label>
+            <div style={{ 
+              padding: '10px', 
+              backgroundColor: '#e3f2fd', 
+              borderRadius: '4px', 
+              marginBottom: '10px',
+              border: '1px solid #bbdefb'
+            }}>
+              <Label style={{ fontWeight: 'bold', color: '#1976d2' }}>
+                ↳ Nested Function: {input.func} (Level {depth + 1})
+              </Label>
+            </div>
             {renderCustomInputs(rule, input.inputs, parentPath ? `${parentPath}.${idx}` : `${idx}`)}
             <Button
               color="info"
