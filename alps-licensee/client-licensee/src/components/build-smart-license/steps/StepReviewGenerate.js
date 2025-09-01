@@ -9,7 +9,6 @@ import {
   Col,
   Button,
   FormGroup,
-  Input,
   Label,
 } from "reactstrap";
 import { useBuildSmartLicenseStyles } from "../styles/buildSmartLicenseStyles";
@@ -72,13 +71,25 @@ const StepReviewGenerate = ({
           <Col md="12">
             <FormGroup>
               <Label for="generatedJson">Generated Smart License JSON</Label>
-              <Input
-                type="textarea"
+              <textarea
                 id="generatedJson"
-                rows="15"
+                rows="30"
                 value={generatedJson}
                 readOnly
                 className={classes.jsonDisplay}
+                style={{
+                  width: '100%',
+                  minHeight: '600px',
+                  height: 'auto',
+                  resize: 'vertical',
+                  padding: '12px',
+                  border: '1px solid #ced4da',
+                  borderRadius: '4px',
+                  fontFamily: 'monospace',
+                  fontSize: '12px',
+                  backgroundColor: '#f8f9fa',
+                  overflowY: 'auto'
+                }}
               />
             </FormGroup>
           </Col>

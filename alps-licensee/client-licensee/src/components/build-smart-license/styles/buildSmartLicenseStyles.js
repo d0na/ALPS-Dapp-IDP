@@ -36,6 +36,23 @@ export const useBuildSmartLicenseStyles = makeStyles((theme) => ({
     fontFamily: 'monospace',
     fontSize: '12px',
     backgroundColor: '#f8f9fa',
-    borderRadius: '4px'
+    borderRadius: '4px',
+    minHeight: '600px !important',
+    height: 'auto !important',
+    resize: 'vertical',
+    overflowY: 'auto',
+    '&::-webkit-scrollbar': {
+      width: '8px'
+    },
+    '&::-webkit-scrollbar-track': {
+      background: '#f1f1f1'
+    },
+    '&::-webkit-scrollbar-thumb': {
+      background: '#888',
+      borderRadius: '4px'
+    },
+    '&::-webkit-scrollbar-thumb:hover': {
+      background: '#555'
+    }
   }
 })); 

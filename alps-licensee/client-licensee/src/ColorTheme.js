@@ -1,8 +1,8 @@
-import { createMuiTheme } from '@material-ui/core/styles';
+import { createTheme } from '@material-ui/core/styles';
 
 
 
-const theme = createMuiTheme({
+const theme = createTheme({
   palette: {
     primary: {
       // blue-ish Hex from IFM guidelines

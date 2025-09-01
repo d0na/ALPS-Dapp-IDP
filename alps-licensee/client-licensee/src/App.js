@@ -106,12 +106,34 @@ class App extends React.Component {
   }
 
   componentDidMount() {
+    // Load tokens from localStorage if they exist
+    const storedToken = localStorage.getItem("CurrentToken");
+    const storedAppState = localStorage.getItem("AppState");
+    
+    if (storedToken && storedAppState) {
+      this.setState({
+        token: storedToken,
+        appState: storedAppState,
+        needRefresh: true,
+      });
+    }
+
     this._asyncRequest = getContractObjects(web3, SmartLicense1).then(
       (result) => {
         this._asyncRequest = null;
         let contracts = result[0];
         console.log("RESULT", result);
-        contracts.push(OracleDemo);
+        
+        // Only add OracleDemo if it has a deployed address
+        // For now, we'll skip it since it's not deployed
+        // contracts.push(OracleDemo);
+        
+        // Ensure we have valid contracts before creating Drizzle
+        if (!contracts || contracts.length === 0) {
+          console.warn("No contracts found, creating empty Drizzle instance");
+          contracts = [];
+        }
+        
         const optionsDrizzle = {
           contracts: contracts,
           web3: {
@@ -124,33 +146,69 @@ class App extends React.Component {
             SmartLicense1: ["PaymentAcknowledged", "RoyaltyComputed"],
           },
         };
-        let drizzle = new Drizzle(optionsDrizzle);
-        console.log(drizzle);
-        // Get licensors
-        let smartLicenses = result[1];
-        let deviceManagers = result[2];
-        let licensors = result[3];
-        let ips = result[4];
-        let deviceIds = result[5];
-        let slIpMap = result[6];
-        let ipDeviceMap = result[7];
-        let ipSlMap = result[8];
+        
+        try {
+          let drizzle = new Drizzle(optionsDrizzle);
+          console.log(drizzle);
+          
+          // Get licensors
+          let smartLicenses = result[1];
+          let deviceManagers = result[2];
+          let licensors = result[3];
+          let ips = result[4];
+          let deviceIds = result[5];
+          let slIpMap = result[6];
+          let ipDeviceMap = result[7];
+          let ipSlMap = result[8];
 
-        this.setState({
-          contracts: contracts,
-          drizzle: drizzle,
-          smartLicenses: smartLicenses,
-          deviceManagers: deviceManagers,
-          licensors: licensors,
-          ips: ips,
-          deviceIds: deviceIds,
-          slIpMap: slIpMap,
-          ipDeviceMap: ipDeviceMap,
-          ipSlMap: ipSlMap,
-          needRefresh: false,
-        });
+          this.setState({
+            contracts: contracts,
+            drizzle: drizzle,
+            smartLicenses: smartLicenses,
+            deviceManagers: deviceManagers,
+            licensors: licensors,
+            ips: ips,
+            deviceIds: deviceIds,
+            slIpMap: slIpMap,
+            ipDeviceMap: ipDeviceMap,
+            ipSlMap: ipSlMap,
+            needRefresh: false,
+          });
+        } catch (error) {
+          console.error("Error creating Drizzle instance:", error);
+          // Set a minimal state to prevent crashes
+          this.setState({
+            contracts: [],
+            drizzle: null,
+            smartLicenses: new Map(),
+            deviceManagers: new Map(),
+            licensors: new Map(),
+            ips: new Map(),
+            deviceIds: new Map(),
+            slIpMap: new Map(),
+            ipDeviceMap: new Map(),
+            ipSlMap: new Map(),
+            needRefresh: false,
+          });
+        }
       }
-    );
+    ).catch((error) => {
+      console.error("Error in getContractObjects:", error);
+      // Set a minimal state to prevent crashes
+      this.setState({
+        contracts: [],
+        drizzle: null,
+        smartLicenses: new Map(),
+        deviceManagers: new Map(),
+        licensors: new Map(),
+        ips: new Map(),
+        deviceIds: new Map(),
+        slIpMap: new Map(),
+        ipDeviceMap: new Map(),
+        ipSlMap: new Map(),
+        needRefresh: false,
+      });
+    });
 
     ws.onopen = () => {
       // on connecting, do nothing but log it to the console
@@ -326,11 +384,8 @@ class App extends React.Component {
       );
       // return <Redirect to={"/licensee/devices"}/>
     } else if (this.state.token === null) {
-      this.setState({
-        token: localStorage.getItem("CurrentToken"),
-        appState: localStorage.getItem("AppState"),
-        needRefresh: true,
-      });
+      // Don't call setState in render - this will be handled in componentDidMount
+      return <LoadingAnimation details={"Loading User Data..."} />;
     } else {
       // Token has been set. Store token in local storage. Until log-out (or new token is input)
       localStorage.setItem("CurrentToken", this.state.token);

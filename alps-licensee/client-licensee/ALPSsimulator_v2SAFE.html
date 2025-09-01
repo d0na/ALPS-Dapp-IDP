@@ -1,0 +1,1944 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+
+<style id="webmakerstyle">
+/* Style the tab */
+.tab {
+  overflow: hidden;
+  border: 1px solid #ccc;
+  background-color: #f1f1f1;
+}
+
+/* Style the buttons that are used to open the tab content */
+.tab button {
+  background-color: inherit;
+  float: left;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  transition: 0.3s;
+}
+
+/* Change background color of buttons on hover */
+.tab button:hover {
+  background-color: #ddd;
+}
+
+/* Create an active/current tablink class */
+.tab button.active {
+  background-color: #ccc;
+}
+
+/* Style the tab content */
+.tabcontent {
+  display: none;
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-top: none;
+} 
+/* end tab*/
+.tooltip {
+  position:relative;
+  display:inline-block;
+}
+.tooltip .tooltiptext{
+  visibility:hidden;
+  width:210px;
+  background-color: black;
+  color: #fff;
+  text-align:center;
+  padding:5px 0;
+  border-radius:6px;
+  position:absolute;
+  z-index: 1;
+}
+.tooltip:hover .tooltiptext{
+  visibility:visible;
+}
+input[type=number]{
+    width: 55px;
+} 
+
+.row{
+  display: flex;
+}
+.column{
+  flex: 50%;
+}
+@media screen and (max-width: 600px) {
+  .column{
+    width:100%;
+  }
+}
+
+.flex-row{
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  align-content: space-around;
+  flex-direction: row;
+}
+.flex-column{
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  align-content: space-around;
+  flex-direction: column;
+}
+/** for line separator*/
+.separator {
+    display: flex;
+    align-items: center;
+    text-align: center;
+}
+.separator::before, .separator::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #000;
+}
+.separator::before {
+    margin-right: .25em;
+}
+.separator::after {
+    margin-left: .25em;
+}
+/**end line separator**/
+
+</style>
+</head>
+<body>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<script src="https://code.highcharts.com/highcharts.js"></script>
+
+<div class="container">
+         <h2><div><img src="data:image/png;base64,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" alt="IfMlogo" style="width:32px;height:32px;vertical-align:middle;"/>  <span>ALPS - Ecosystem Simulation</span>
+         </div></h2>
+  <hr>
+  <hr>
+  <div id="settings" class="flex-row">
+    <div style="flex-grow: 1"  class="flex-column" >
+
+     
+        <Strong>Number of Licensors:</Strong>
+       
+         <input type="number" value="3" min="1" id="numLicensors">      
+<Strong>Random number of IPs owned by each Licensor:</Strong>
+    <div>
+      min <input type="number" value="1" min="1" id="minIPs">
+      </div>
+      <div>
+        max <input type="number" value="6" min="1" id="maxIPs">
+      </div>
+    </div>
+    <div style="flex-grow: 1"  class="flex-column" >
+<Strong>Number of Licensees/OEMs:</Strong>
+        <input type="number" value="2" min="1" id="numLicensees">
+  
+<Strong>Random number of Devices for each Licensee:</Strong>
+         <div>
+        min <input type="number" value="1" min="1" id="minDevices">      
+      </div>
+      <div>
+         max <input type="number" value="4" min="1" id="maxDevices">
+      </div>
+    
+<Strong>Random number of IPs for each device:</Strong>
+            <div>
+        min <input type="number" value="1" min="1" id="minRules">      
+      </div>
+      <div>
+         max <input type="number" value="3" min="1" id="maxRules">
+      </div>
+    </div>
+    <div style="flex-grow: 1" class="flex-column">
+<Strong>Simulation duration:</Strong>
+      <div>
+        <input type="number" value="100" min="1" id="daysDuration">days
+      </div>
+  <label for="currency"><Strong>Reference currency:</Strong></label>
+<input list="currencys" name="currency" id="currency" value="USD" style="width: 40px;">
+<datalist id="currencys">
+  <option value="USD">
+  <option value="EUR">
+  <option value="ETH">
+  <option value="BTC">
+  <option value="JPY">
+  <option value="GBP">
+  <option value="CHF">
+  <option value="CAD">
+  <option value="AUD">
+  <option value="NZD">
+</datalist>    
+      
+      
+    </div>
+    
+    </div>
+  <button onclick='initialiseDevicesAndSim()' class="tooltip">GENERATE DEVICES<span class="tooltiptext" id="headTooltip">Generates the devices with random rules, Lees and Lors with the above chosen parameters</span></button>
+  <label for="fileLoader" class="tooltip">Load Saved Configuration: <span class="tooltiptext" id="headTooltip">Loads a previously set configuration setting all parameters accordingly. No random generation.</span></label>
+  <input type="file" id="loadSimConfig" namefor="fileLoader">
+  
+  <button onclick="copySimConfigJSON()">Copy Sim Config as JSON</button>
+  
+  <hr>
+  <!-- Tab links -->
+  <div>
+    
+<div class="tab">
+  <button class="tablinks tablinks-lorlee" onclick="openTab('lorlee',event, 'Licensees')" id="defaultTabOpenButton-lorlee">Licensees</button>
+  <button class="tablinks tablinks-lorlee" onclick="openTab('lorlee',event, 'Licensors')">Licensors</button>
+</div>
+  
+  <!-- Tab content -->
+<div id="Licensors" class="tabcontent tabcontent-lorlee">
+<div id="lors" class="flex-column">
+  <div>
+      <select id="LOR_lorNum" onChange="saveLorAndSwitch()">
+        <option value="..."> ... </option>
+      </select> 
+     <!-- </div>
+  <div> -->
+        Name:
+        <input type="text" value="..." id="LOR_name" style="width: 100px;" >
+      </div>
+    <div>
+      Owned IP list:
+      <div id="LOR_ipList">
+        
+      </div>
+    </div>
+  </div>
+  </div>
+<div id="Licensees" class="tabcontent tabcontent-lorlee">
+  <div id="lees" class="flex-column">
+  <div>
+      <select id="LEE_leeNum" onChange="saveLeeAndSwitch()">
+        <option value="..."> ... </option>
+      </select> 
+      <!-- </div>
+  <div>-->
+        Name:
+        <input type="text" value="..." id="LEE_name" style="width: 100px;" >
+      </div> 
+    <div style="width:100%">
+      <div class="separator"> Devices </div>
+    </div>
+  <div id="devices" class="flex-row">
+    <div style="flex-grow: 1" class="flex-column">
+      <div>
+      <select id="DEV_deviceNum" onChange="saveDeviceAndSwitch()">
+        <option value="..."> ... </option>
+      </select> 
+      </div>
+      <div>
+        Name:
+        <input type="text" value="..." id="DEV_name" style="width: 100px;" >
+      </div>
+      <div class="color-box" style="color:#FFFFFF"  id="DEV_colour"> <strong> colour </strong></div>
+      <div>
+        Selling price:
+        <input type="number" value="0" min="0" id="DEV_price" style="width: 70px;" > <span id="DEV_currencyUnit"> USD cents</span>
+      </div>
+    </div>
+    <div style="flex-grow: 1" class="flex-column">
+      <!-- 
+      <div>
+        OEM:
+        <select id="DEV_LeeId">
+        <option value="..."> ... </option>
+      </select>
+      </div>-->
+      <div>
+        NumRules:
+        <label id="DEV_numRules">...</label>
+        <button onclick='addNewRuleTab()' class="tooltip">Add rule<span class="tooltiptext" id="addRuleTooltip">Add a new random rule</span></button>
+      </div>
+      <div>
+        Sales-popularity:
+  <input type="range" min="1" max="30" value="1" class="slider" id="DEV_quantity">
+      </div>
+      <div>
+        Usage-popularity:
+  <input type="range" min="1" max="50" value="1" class="slider" id="DEV_popularity">
+      </div>
+      </div>
+    <div style="flex-grow: 2">
+      <table class="table" id="DEV_rules">
+        <!--  <tr id="DEV_rules_header">
+          <td>Licensor</td><td>RuleType</td><td>Parameter</td>
+        </tr>
+      <tr>
+          <td>
+            <select id="DEV_LeeId">
+        <option value="..."> ...</option>
+       </select>
+</td><td>
+          <select id="ruleSimplType">
+        <option value="..."> ... </option>
+  </select>
+                </td><td>
+          <input type="number" value="1" min="1">
+          </td><td><button onclick='deleteRow(this)' class="tooltip">Remove<span class="tooltiptext">Deletes this item slot</span></button></td>  
+        </tr>       --> 
+      </table>
+      
+    </div>
+    <div style="flex-grow: 2;width:100%">
+      <div class="tab" id="ruleTabButtons">
+  <button class="tablinks tablinks-rules" onclick="openTab('rules',event, 'rule1')" id="defaultTabOpenButton">rule0</button>
+</div>
+      
+      <div id="ruleTabContents">
+  <div id="rule0" class="tabcontent tabcontent-rules">
+  rule0Content
+</div>
+</div>
+      
+    </div>
+  </div>
+  </div>
+  </div>
+    
+  </div>
+  <hr>
+  
+       <button onclick='startSim()' class="tooltip">LAUNCH NEW SIMULATION<span class="tooltiptext" id="headTooltip">Stops the current simulation, if any active, and starts a new one with the above chosen parameters</span></button>
+    <button onclick='pauseSim()' class="tooltip"> PAUSE SIMULATION<span class="tooltiptext" id="headTooltip">Pauses the current simulation, if any active</span></button>
+  <button onclick='unpauseSim()' class="tooltip"> CONTINUE SIMULATION<span class="tooltiptext" id="headTooltip">Unpauses the current simulation, if any active</span></button>
+  <div><span class="tooltip">Fast Simulation: <span class="tooltiptext" id="headTooltip">Only shows results in Graphs if paused or ended</span></span> <input type="checkbox"  id="fastSimCheck"></div>
+  <hr>
+  <hr>
+  <div id="simulationSpace">
+    <div id="timeClock">
+      <label id="dayCurrent">1 Jan 2020</label><span> - Days passed:</span> <label id="dayPassed">0</label>
+    </div>
+    
+    <div class="tab">
+  <button class="tablinks tablinks-graphs" onclick="openTab('graphs',event, 'DeviceGraphs')" id="defaultTabOpenButton-graphs">General</button>
+  <button class="tablinks tablinks-graphs" onclick="openTab('graphs',event, 'LicensorGraphs')">Licensors</button>
+  <button class="tablinks tablinks-graphs" onclick="openTab('graphs',event, 'LicenseeGraphs')">Licensees</button>
+  <button class="tablinks tablinks-graphs" onclick="openTab('graphs',event, 'DevicesGraphs')">Devices</button>
+</div>
+  
+    
+    
+    <div id="DeviceGraphs" class="tabcontent tabcontent-graphs">
+      <div class="column">
+        <strong>Devices stats</strong>
+        
+        <figure class="highcharts-figure">
+  <div id="devicesCumulativeGraph"> </div>
+</figure>
+        <figure class="highcharts-figure">
+  <div id="devicesActivationGraph"> </div>
+</figure>
+        <figure class="highcharts-figure">
+  <div id="devicesCumulativeRoyaltyGraph"> </div>
+</figure>
+        <div id="deviceGraphs">
+        </div>
+      </div>
+    </div>
+    <div id="LicensorGraphs" class="tabcontent tabcontent-graphs">
+      <div class="column">
+        <strong>Licensor gains</strong>
+  <div id="licensorGraphs">
+          
+        </div>
+      </div>
+    </div>
+    <div id="LicenseeGraphs" class="tabcontent tabcontent-graphs">
+      <div class="column">
+        <strong>Licensee gains vs royalty expenses</strong>
+  <div id="licenseeGraphs">
+          
+        </div>
+      </div>
+    </div>
+    <div id="DevicesGraphs" class="tabcontent tabcontent-graphs">
+      <div class="column">
+        <strong>Devices rules contribution breakdown</strong>
+  <div id="devicesGraphs">
+          
+        </div>
+      </div>
+    </div>
+  </div>
+  <hr>   
+  <label id="debug">
+            DEBUG:
+            </label>
+   <!-- The hidden support text to copy strings -->
+<input type="text" value="" id="supportHiddenText" style="width:6px;">
+  
+</div>
+
+<script>
+document.getElementById("defaultTabOpenButton-lorlee").click();
+document.getElementById("defaultTabOpenButton-graphs").click();
+function openTab(tabsName,evt, tabName) {
+  var i, tabcontent, tablinks;
+  // Get all elements with class="tabcontent" and hide them
+  tabcontent = document.getElementsByClassName("tabcontent-"+tabsName);
+  for (i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+  }
+  // Get all elements with class="tablinks" and remove the class "active"
+  tablinks = document.getElementsByClassName("tablinks-"+tabsName);
+  for (i = 0; i < tablinks.length; i++) {
+    tablinks[i].className = tablinks[i].className.replace(" active", "");
+  }
+  // Show the current tab, and add an "active" class to the button that opened the tab
+  document.getElementById(tabName).style.display = "block";
+  evt.currentTarget.className += " active";
+}
+function openRulesTab(evt, tabIdx) {
+  var i, tabcontent, tablinks;
+  // Get all elements with class="tabcontent" and hide them
+  tabcontent = document.getElementsByClassName("tabcontent-rules");
+  for (i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+  }
+  // Get all elements with class="tablinks" and remove the class "active"
+  tablinks = document.getElementsByClassName("tablinks-rules");
+  for (i = 0; i < tablinks.length; i++) {
+    tablinks[i].className = tablinks[i].className.replace(" active", "");
+  }
+  // Show the current tab, and add an "active" class to the button that opened the tab
+  document.getElementById("rule"+tabIdx).style.display = "block";
+  evt.currentTarget.className += " active";
+  //save previous rule infos
+  saveRuleInfos(lastDeviceSeen);
+  lastRuleSeen = tabIdx;
+}
+
+var DEFAULTDAILYMAXUSES = 50;
+var MANUFACTUREDMAX = 30;
+var MAXPRICE = 10000; //i.e. 100.00 USD expressed in cents
+var referenceCurrency = "USDcents";
+var format = d3.timeFormat("%d %b %Y");
+//const delay = ms => new Promise(res => setTimeout(res, ms));
+const StateEnum = Object.freeze({"IDLE":1, "RUNNING":2, "PAUSED":3, "FINISHED":4 });
+var simulationState = StateEnum.IDLE;
+const RuleType = ["LumpSum", "Proportional", "LumpSumThresh", "ProportionalThresh"];
+function printDebug(str){
+  document.getElementById("debug").innerText=document.getElementById("debug").innerText+" - "+str;
+}
+function getRandomInt(min, max) {
+  /**
+ * Returns a random integer between min (inclusive) and max (inclusive).
+ * The value is no lower than min (or the next integer greater than min
+ * if min isn't an integer) and no greater than max (or the next integer
+ * lower than max if max isn't an integer).
+ * Using Math.round() will give you a non-uniform distribution!
+ */
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+var ips = [];
+//each element is the id of the licensor owner
+var devices = [];
+class device{
+    constructor(_id,_nr, _lee){ 
+      this.id = _id;
+      this.lee = _lee;
+      this.oracle = _id;//////////
+      this.numRules = _nr;
+      //this.rules=[];
+      this.rules222=[];
+      //rule = {licensor, ruleType, {fieldValues}}
+      this.popularity = getRandomInt(1, DEFAULTDAILYMAXUSES); //max daily usage
+      this.quantity = getRandomInt( 1, MANUFACTUREDMAX);
+      this.price = getRandomInt(100,MAXPRICE);
+      this.numActivated = 0;
+      this.name = "Device" + _id;
+      this.colour = getScheemeHexColour(_id);
+    } 
+}
+var licensees = [];
+//licensee = {id, [devices]}
+class licensee{
+    constructor(_id){ 
+      this.id = _id;
+      this.devices = [];
+      //device = {device_id}
+      this.name = "Licensee" + _id;
+    } 
+}
+var licensors = [];
+//licensor = {id, currentAmount}
+class licensor{
+    constructor(_id){ 
+      this.id = _id;
+      this.ips = [];
+      //ip = {name}
+      this.currentAmount = 0;
+      this.name = "Licensor" + _id;
+      this.colour = getScheemeHexColour(_id);
+    } 
+}
+class rule{
+    constructor(_id, _dev, _lor, _percBool, _type, _meas, _dur, _ip){ 
+      this.id = _id;
+      this.lor = _lor;
+      this.ip = _ip;
+      this.device = _dev;
+      //this.oracle = _id;//////////
+      this.percPrice = _percBool;
+      //if true amount is percentage of sale value
+      // i.e. amount *1 /10000 = reward
+      this.customers = 0;
+      //if true this rule royalties payment will be charged to customers
+      this.type = _type;
+      //0 = LUMP
+      //1 = PROPORTIONAL
+      this.measure = _meas;
+      //0 = USAGE
+      //1 = NUMSALES
+      this.threshAmounts=[];
+      this.name = "rule"+_id;
+      this.duration = _dur;
+      //expressed as number of days
+    } 
+}
+function generateRandomRule(deviceIdx, ruleIdx, lorIdx){
+  let perc = true;
+  if(getRandomInt(0,1) == 0)
+    perc = false;
+  let dur = getRandomInt(1,duration);
+  let typ = getRandomInt(0,1);
+  let mes = getRandomInt(0,1);
+  let ipr = licensors[lorIdx].ips[getRandomInt(0, licensors[lorIdx].ips.length-1)];
+  let thresh = [];
+  let firstAmount = 1;//PERCENTAGE
+  if(typ == 0){
+    //LUMP
+    //both perc or absolute I am getting paid 10 USD or 10%
+    firstAmount = 1000;
+  }
+  if(getRandomInt(0,2) == 0){
+    //no thresholds
+    thresh.push([-1, firstAmount]);
+  }else{
+    //thresholded
+    let decreasing = getRandomInt(0,1);
+    //0 = increasing
+    //1 = decreasing
+    if(decreasing == 1){
+       firstAmount = firstAmount * 10;
+       }
+    //always add default value at the end (that will become first once sorted)
+    thresh.push([-1, firstAmount]);
+    //exponentially decreasing chance of adding new thresholds
+    let maxThresh = 10;
+    let firstStep = getRandomInt(1,10) * 100;
+    
+    while((getRandomInt(0,3) > 0)&&(maxThresh >= thresh.length)){
+      if(decreasing == 1){
+        firstAmount = Math.floor(firstAmount / 2);
+      }else{
+        firstAmount = firstAmount * 2;
+      }
+      firstStep = firstStep * getRandomInt(1,10);
+      thresh.push([firstStep, firstAmount]);
+         
+      }
+    thresh.sort(function (a, b) {
+  return a[0] - b[0];
+});
+    //threshold rules is that I scan for increasing thresh values and apply the correct lump or proportional amount for values between the previous and up to the current thresh. THEN: If two thresh have same value only the first will have effect. All the remaining (i.e. greater than last thresh) considers the default (not thresholded) value
+  }
+  let rr = new rule(ruleIdx, deviceIdx, lorIdx, perc, typ, mes, dur, ipr);
+  rr.threshAmounts = thresh;
+  return rr;
+}
+var duration = 100;
+function resetLicenseesLicensorsDevices(){
+  //NOTE: overrides previous values
+  duration = document.getElementById("daysDuration").value;
+  createLicensors( document.getElementById("numLicensors").value, document.getElementById("minIPs").value, document.getElementById("maxIPs").value);
+  //devices after lors otherwise error (no existing lors)
+  createLicenseesAndDevices( document.getElementById("numLicensees").value,  document.getElementById("minDevices").value, document.getElementById("maxDevices").value);
+}
+function createLicensors(num, ipmin, ipmax){
+  licensors = [];
+  ips = [];
+  var lastIp = 0;
+  var numIps;
+  for (var i = 0; i < num; i++) {
+    numIps = getRandomInt(ipmin, ipmax);
+    licensors[i]= new licensor(i);
+    for (var ii = 0; ii < numIps; ii++) {
+      licensors[i].ips[ii] = lastIp;
+      ips[lastIp] = {lor: i, name: "IP" + lastIp};
+      lastIp++;
+    }
+  }
+}
+function createLicenseesAndDevices(num, minDev, maxDev){
+  licensees = [];
+  devices = [];
+  var lastDevIdx = 0;
+  let min = document.getElementById("minRules").value;
+  let max = document.getElementById("maxRules").value;
+  for (var i = 0; i < num; i++) {
+    licensees[i]=new licensee(i);
+    let numDevices = getRandomInt(minDev,maxDev);
+    for(var ii = 0; ii < numDevices; ii++){
+      devices[lastDevIdx] = new device(lastDevIdx,getRandomInt(min,max), i);
+      licensees[i].devices[ii] = lastDevIdx;
+      lastDevIdx++;
+    }
+  }
+  setRandomDeviceAssignments();
+}
+function setRandomDeviceAssignments(){
+  //for each device fill the fields at random
+  
+  /*//try to give to each licensee at least one device
+  var numLicenseesMax = licensees.length;
+  if(numLicenseesMax > devices.length){
+    numLicenseesMax = devices.length;
+  }
+  var i=0;
+  for (; i < numLicenseesMax; i++) {
+    devices[i].licensee = i;
+  }
+  //if there are more devices than licensees than assign the remaining devices at random (as a consequence numLicenseesMax is the number of licensees and not devices, otherwise the next for would nevere be executed)
+  for (; i < devices.length; i++) {
+    devices[i].licensee = getRandomInt(0, numLicenseesMax-1);
+  }*/
+  //set each rule at random, but first filling at least once each licensor if possible
+  var y = 0;
+  var lorr = 0;
+  for (var j=0; j < devices.length; j++) {
+    for (var jj=0; jj < devices[j].numRules; jj++) {
+      if(y < licensors.length)
+       lorr = y++; 
+      else
+        lorr = getRandomInt(0, licensors.length - 1);
+      //NOTE: the above allows for multiple rules on the same device involving the same licensor ip
+       devices[j].rules222.push(generateRandomRule(j, jj,lorr));
+    }
+  }
+}
+function initialiseDevicesAndSim(){
+  
+  referenceCurrency = document.getElementById("currency").value;
+resetLicenseesLicensorsDevices();
+  lastLeeSeen = 0;
+  lastlorSeen = 0;
+  lastDeviceSeen = licensees[ lastLeeSeen ].devices[0];
+  showLeeInfosFirst( lastLeeSeen);
+  showLorInfos(lastLorSeen);
+}
+var lastDeviceSeen = 0;
+var lastLorSeen = 0;
+var lastLeeSeen = 0;
+function saveDeviceAndSwitch(){
+  //done even if newly selected device is the same as the previous one (is considered as update operation)
+  saveDeviceInfos(lastDeviceSeen);
+  //save infos of previous one whose id is remembered in lastDeviceSeen
+  //saves also currently active rule
+  
+  //show the info of the newly selected device
+  lastDeviceSeen = document.getElementById("DEV_deviceNum").value;
+  showDeviceInfos( lastDeviceSeen, lastLeeSeen);
+}
+function showDeviceInfos(deviceNumber, leeNumber){
+ var selectInner="";
+ for(var i = 0; i < devices.length; i++){
+   //only show devices of current licensee
+   if(parseInt(devices[i].lee) == leeNumber){
+   if(deviceNumber != i)
+   selectInner += '<option value="'+i+'"> '+ devices[i].name + "</option>\n";
+   else
+     selectInner += '<option value="'+i+'" selected="selected"> '+ devices[i].name + "</option>\n";}
+ }
+  document.getElementById("DEV_deviceNum").innerHTML = selectInner;
+  document.getElementById("DEV_name").value = devices[deviceNumber].name;
+  
+  document.getElementById("DEV_colour").style.backgroundColor = devices[deviceNumber].colour;
+ 
+ document.getElementById("DEV_price").value = devices[deviceNumber].price;
+  document.getElementById("DEV_currencyUnit").innerHTML = referenceCurrency + " cents";
+  updateNumRulesLabel(devices[deviceNumber].rules222.length);
+  
+  document.getElementById("DEV_popularity").value = devices[deviceNumber].popularity;
+  
+  document.getElementById("DEV_quantity").value = devices[deviceNumber].quantity;
+  
+  displayNewRuleTabs(deviceNumber);
+}
+function saveDeviceInfos(deviceNumber){
+  devices[deviceNumber].name = document.getElementById("DEV_name").value;
+  
+   devices[deviceNumber].price = document.getElementById("DEV_price").value;
+  let table = document.getElementById("DEV_rules");
+  
+  devices[deviceNumber].popularity = document.getElementById("DEV_popularity").value;
+  devices[deviceNumber].quantity = document.getElementById("DEV_quantity").value;
+  devices[deviceNumber].numActivated = 0;
+  
+   saveRuleInfos(deviceNumber);
+  //switching device
+  lastRuleSeen = 0;
+}
+function updateNumRulesLabel(newNumRules){
+  document.getElementById("DEV_numRules").innerHTML = newNumRules;
+  
+  
+}
+function showRuleInfo(deviceNumber, ruleNumber){
+  //lastRuleSeen = ruleNumber;
+  let node = document.getElementById("rule"+ruleNumber);
+  let res = '<div class="flex-column">';
+  res += '<div><span>Name:</span><input type="text" value="'+ devices[deviceNumber].rules222[ruleNumber].name +'" class="RULE_name" style="width: 100px;"></div>';  
+  res += '<div><span>IP (Licensor):</span><select class = "RULE_ip">';
+  for(var i = 0; i < ips.length ; i++){
+    if(devices[deviceNumber].rules222[ruleNumber].ip!=i)
+   res += '<option value="'+i+'">'+ ips[i].name + ' ('+ licensors[ips[i].lor].name +') </option>\n';
+   else
+     res += '<option value="'+i+'" selected="selected"> '+ ips[i].name + ' ('+ licensors[ips[i].lor].name +') </option>\n';
+  }          
+   res +='</select></div>';
+  
+  res += '<div> <span>Duration: </span>';
+  res += ' <input type="number" value="'+devices[deviceNumber].rules222[ruleNumber].duration+'" min="1" class = "RULE_duration"> <span>days</span> </div>'
+  
+  res += '<div><span>Royalty Rate: </span> <select class = "RULE_type">';
+  if(devices[deviceNumber].rules222[ruleNumber].type == 0){
+    res += '<option value="0" selected="selected"> FIXED </option> <option value="1"> PROPORTIONAL </option>';
+  }else{
+    res += '<option value="0"> FIXED </option> <option value="1" selected="selected"> PROPORTIONAL </option>';
+  }
+  res += '</select></div>';
+  res += '<div><span>Percentage: </span>';
+  if(devices[deviceNumber].rules222[ruleNumber].percPrice == 0)
+    res += '<input type="checkbox"  class = "RULE_percentage">';//res += '<input type="checkbox" onclick="displayPercentage(this,"rule'+ruleNumber+'")">';
+  else
+    res += '<input type="checkbox" checked  class = "RULE_percentage">';
+  res += '</div>';
+  res += '<div><span>Charged to Customers: </span>';
+  if(devices[deviceNumber].rules222[ruleNumber].customers == 0)
+    res += '<input type="checkbox"  class = "RULE_customers">';//res += '<input type="checkbox" onclick="displayPercentage(this,"rule'+ruleNumber+'")">';
+  else
+    res += '<input type="checkbox" checked  class = "RULE_customers">';
+  res += '</div>';
+  res += '<div><span>Royalty Base: </span> <select class = "RULE_measure">';
+  if(devices[deviceNumber].rules222[ruleNumber].measure == 0)
+    res += '<option value="0" selected="selected"> USAGE </option> <option value="1"> SALES </option>  <option value="2"> DAYS </option>';
+  else if(devices[deviceNumber].rules222[ruleNumber].measure == 1)
+    res += '<option value="0"> USAGE </option> <option value="1" selected="selected"> SALES </option>  <option value="2"> DAYS </option>';
+  else
+    res += '<option value="0"> USAGE </option> <option value="1"> SALES </option>  <option value="2" selected="selected"> DAYS </option>';
+  res += '</select></div>';
+  //thresholds:
+  res += '<div class="flex-column RULE_thresholds">';
+  //the default is always present
+  res += '<div> <span>Not Thresholded, amount </span> <input type="number" value="'+ devices[deviceNumber].rules222[ruleNumber].threshAmounts[0][1]+'" min="1"> <span> '+referenceCurrency+' </span> </div>';
+  
+  if(thresholded(deviceNumber, ruleNumber)){
+    for(var i=1; i<devices[deviceNumber].rules222[ruleNumber].threshAmounts.length; i++){
+      res += '<div><span>Threshold </span> <input type="number" value="'+ devices[deviceNumber].rules222[ruleNumber].threshAmounts[i][0]+'" min="1"><span> Amount </span> <input type="number" value="' + devices[deviceNumber].rules222[ruleNumber].threshAmounts[i][1]+'" min="1"> <span> '+referenceCurrency+' </span> <button onclick="deleteRuleThresh(this)">Delete</button></div>';
+    }
+  }
+  
+  res += '</div>';
+  //res += '<span class="percentage" style="display:none">%</span>';
+  res += '<div><button onclick="addRuleThresh(this)">Add new threshold</button></div>'
+  res += '</div>';
+  node.innerHTML = res;
+}
+var lastRuleSeen = 0;
+var ruleSavesCounterDEBUG = 0;/////
+function saveRuleInfos(deviceNumber){
+  let node = document.getElementById("rule" + lastRuleSeen);
+  let currentRule = devices[deviceNumber].rules222[lastRuleSeen];
+ //printDebug(" ruleInfoSaved dev:"+deviceNumber+" rul:"+lastRuleSeen+" num:"+ruleSavesCounterDEBUG+" - ");
+  ruleSavesCounterDEBUG++;
+  //ip-lor info
+  currentRule.ip = node.getElementsByClassName("RULE_ip")[0].value;
+  currentRule.lor = ips[node.getElementsByClassName("RULE_ip")[0].value].lor;
+  //type
+  currentRule.type = node.getElementsByClassName("RULE_type")[0].value;
+  //measure
+  currentRule.measure = node.getElementsByClassName("RULE_measure")[0].value;
+  //percentage
+  currentRule.percPrice = node.getElementsByClassName("RULE_percentage")[0].checked;
+  //paid by customers instead of lee
+  currentRule.customers = node.getElementsByClassName("RULE_customers")[0].checked;
+  
+  //duration
+  currentRule.duration = node.getElementsByClassName("RULE_duration")[0].value;
+  //name
+  currentRule.name = node.getElementsByClassName("RULE_name")[0].value;
+  //thresholds
+  let threshs = node.getElementsByClassName("RULE_thresholds")[0].children;
+  //always present the first one
+  let tempThreshAmounts = [];
+  tempThreshAmounts.push([-1, threshs[0].getElementsByTagName("input")[0].value]);
+  for(var i=1; i<threshs.length; i++){
+    let inputs = threshs[i].getElementsByTagName("input");
+    tempThreshAmounts.push([inputs[0].value, inputs[1].value]);
+  }
+  tempThreshAmounts.sort(function (a, b) {
+    return a[0] - b[0];
+  });
+  currentRule.threshAmounts = tempThreshAmounts;
+}
+/*function displayPercentage(checkBox, nodeName){
+  let ret = document.getElementById(nodeName).getElementsByClassName("percentage");
+  for(var i=0; i<ret.length; i<ret.length){
+  if (checkBox.checked == true){
+    ret[i].style.display = "block";
+  } else {
+    ret[i].style.display = "none";
+  }}
+}*/
+function thresholded(deviceNumber, ruleNumber){
+  //return ((devices[deviceNumber].rules222[ruleNumber].threshAmounts.length != 1)||(devices[deviceNumber].rules222[ruleNumber].threshAmounts[0][0] != -1));
+  //first value always -1
+  return (devices[deviceNumber].rules222[ruleNumber].threshAmounts.length > 1);
+}
+
+function showLeeInfos(leeNumber){
+ var selectInner="";
+ for(var i = 0; i < licensees.length; i++){
+   if(leeNumber != i)
+   selectInner += '<option value="'+i+'"> '+ licensees[i].name + "</option>\n";
+   else
+     selectInner += '<option value="'+i+'" selected="selected"> '+ licensees[i].name + "</option>\n";
+ }
+  document.getElementById("LEE_leeNum").innerHTML = selectInner;
+  document.getElementById("LEE_name").value = licensees[leeNumber].name;
+  saveDeviceInfos(lastDeviceSeen);
+  lastDeviceSeen = licensees[ lastLeeSeen ].devices[0];
+  showDeviceInfos( lastDeviceSeen, lastLeeSeen);
+}
+function showLeeInfosFirst(leeNumber){
+ var selectInner="";
+ for(var i = 0; i < licensees.length; i++){
+   if(leeNumber != i)
+   selectInner += '<option value="'+i+'"> '+ licensees[i].name + "</option>\n";
+   else
+     selectInner += '<option value="'+i+'" selected="selected"> '+ licensees[i].name + "</option>\n";
+ }
+  document.getElementById("LEE_leeNum").innerHTML = selectInner;
+  document.getElementById("LEE_name").value = licensees[leeNumber].name;
+  
+  lastDeviceSeen = licensees[ lastLeeSeen ].devices[0];
+  showDeviceInfos( lastDeviceSeen, lastLeeSeen);
+}
+function saveLeeInfos(leeNumber){
+  licensees[leeNumber].name = document.getElementById("LEE_name").value;
+}
+function saveLeeAndSwitch(){
+  //done even if newly selected licensee is the same as the previous one (is considered as update operation)
+  saveLeeInfos(lastLeeSeen);
+  //save infos of previous one whose id is remembered in lastDeviceSeen
+  
+  //show the info of the newly selected device
+  lastLeeSeen = document.getElementById("LEE_leeNum").value;
+  showLeeInfos( lastLeeSeen);
+}
+
+function showLorInfos(lorNumber){
+ var selectInner="";
+ for(var i = 0; i < licensors.length; i++){
+   if(lorNumber != i)
+   selectInner += '<option value="'+i+'"> '+ licensors[i].name + "</option>\n";
+   else
+     selectInner += '<option value="'+i+'" selected="selected"> '+ licensors[i].name + "</option>\n";
+ }
+  document.getElementById("LOR_lorNum").innerHTML = selectInner;
+  document.getElementById("LOR_name").value = licensors[lorNumber].name;
+  
+  selectInner="";
+ for(var i = 0; i < licensors[lorNumber].ips.length; i++){
+   selectInner += " " + ips[licensors[lorNumber].ips[i]].name;
+   if(i != licensors[lorNumber].ips.length - 1)
+     selectInner += " -"
+ }
+  document.getElementById("LOR_ipList").innerHTML = selectInner;  
+}
+function saveLorInfos(lorNumber){
+  licensors[lorNumber].name = document.getElementById("LOR_name").value;
+}
+function saveLorAndSwitch(){
+  //done even if newly selected licensee is the same as the previous one (is considered as update operation)
+  saveLorInfos(lastLorSeen);
+  //save infos of previous one whose id is remembered in lastDeviceSeen
+  
+  //show the info of the newly selected device
+  lastLorSeen = document.getElementById("LOR_lorNum").value;
+  showLorInfos( lastLorSeen);
+}
+
+function pauseSim(){
+  if(simulationState = StateEnum.RUNNING){
+  simulationState = StateEnum.PAUSED;
+  clearTimeout(waiting);}
+}
+function unpauseSim(){
+  if(simulationState = StateEnum.PAUSED){
+    let count = d3.timeDay.count(start, currentDay);
+  simulationState = StateEnum.RUNNING;
+  if(document.getElementById("fastSimCheck").checked)
+    continueSim_NoGraphsRedrawOnlyEnd(count);
+    else
+    continueSim(count);}
+}
+function startSim(){
+  printDebug(".new sim.");
+  simulationState = StateEnum.IDLE;
+  clearTimeout(waiting);
+  //saves last possibly modified device
+  saveDeviceInfos(document.getElementById("DEV_deviceNum").value);
+  saveLorInfos(document.getElementById("LOR_lorNum").value);
+  saveLeeInfos(document.getElementById("LEE_leeNum").value);
+  
+  resetSimGraphs();
+  start = d3.timeDay.floor(new Date);
+  currentDay = start;
+  end = d3.timeDay.offset(start, duration);
+  startMillis = new Date().getTime();
+  daysPassed = 0;
+  
+  setupLorGainsAreaGraphs( document.getElementById("licensorGraphs"));
+  setupDevicesCumulativeGraph();
+  setupDevicesActivationGraph();
+  setupDevicesCumulativeRoyaltyGraph();
+  setupLeeGainVsRoyaltyAreaGraphs( document.getElementById("licenseeGraphs"));
+  setupDevicesRulesAreaGraphs( document.getElementById("devicesGraphs"));
+  
+  resetSimSeries();
+  //simBodyDebug();
+  simulationState = StateEnum.RUNNING;
+  if(document.getElementById("fastSimCheck").checked)
+    continueSim_NoGraphsRedrawOnlyEnd(0);
+  else
+    continueSim(0);
+}
+var currentDay;
+var daysPassed = 0;
+
+function resetSimSeries(){
+  oracleUsageData = [];
+  for (var i = 0; i < devices.length; i++){
+    oracleUsageData.push({lastDate: d3.timeDay.offset(start, -1), serie: []});
+  }
+  oracleActivationData = [];
+  for (var i = 0; i < devices.length; i++){
+    oracleActivationData.push({lastDate: d3.timeDay.offset(start, -1), serie: []});
+    devices[i].numActivated = 0;
+  }
+  oracleRoyaltyData = [];
+  for (var i = 0; i < devices.length; i++){
+    oracleRoyaltyData.push({lastDate: d3.timeDay.offset(start, -1), serie: []});
+  }
+  oracleIpData = [];
+  for (var i = 0; i < ips.length; i++){
+    oracleIpData.push({lastDate: d3.timeDay.offset(start, -1), serie: []});
+  }
+  
+  licensorsGainData = [];
+  for (var i = 0; i < licensors.length; i++){
+    licensorsGainData.push({lastDate: d3.timeDay.offset(start, -1), serie: []});
+  }
+}
+function resetSimGraphs(){
+  document.getElementById("deviceGraphs").innerHTML = "";
+  document.getElementById("licensorGraphs").innerHTML = "";
+  deviceGraphs = [];
+  gainGraphs = [];
+    document.getElementById("licenseeGraphs").innerHTML = "";
+  leeRoyaltyGraphs = [];
+  document.getElementById("devicesGraphs").innerHTML = "";
+  devicesRulesGraphs = [];
+}
+var oracleUsageData = [];
+var oracleActivationData = [];
+var oracleRoyaltyData = [];
+var oracleIpData = [];
+/*each index corresponds to a device
+each element is an array of daily usage elements of format 
+  {
+      date: currentDay,
+      value: count
+    }
+    
+*/
+var licensorsGainData = [];
+/*each index corresponds to a licensee
+each element is an array of cumulative daily gain of format 
+  {
+      date: currentDay,
+      value: count
+    }
+    
+*/
+var waiting;
+function continueSim_NoGraphsRedrawOnlyEnd(count){
+  //PRE:might be interrupted depending on current STATE
+  //printDebug(" inside ");
+  if((simulationState == StateEnum.RUNNING)&&(currentDay <= end)){
+    document.getElementById("dayCurrent").innerHTML = format(currentDay);
+    document.getElementById("dayPassed").innerHTML = count;
+    daysPassed = count;
+    addRandomOracleUsageData(currentDay, count);
+    currentDay = d3.timeDay.offset(currentDay, 1);
+    updateCumulativeOracleUsageData(count);
+    updateCumulativeOracleActivationData(count);
+    updateCumulativeRoyaltyOracleUsageData(count);
+    computeNewLicensorsGainData(count);
+    computeNewLicenseesGainVsRoyaltyData(count);
+    computeNewDevicesRulesData(count);
+    waiting = setTimeout(function(){ continueSim_NoGraphsRedrawOnlyEnd(count+1); }, 1);//wait one millisecond
+  }else{
+  //simulation has ended or was paused
+  for(var j = 0; j < devicesCumGraph.series.length; j++){
+      devicesCumGraph.series[j].setData( devicesCumGraphData[j].dataTemp, false);
+    }
+    devicesCumGraph.redraw();
+    for(var j = 0; j < devicesActGraph.series.length; j++){
+      devicesActGraph.series[j].setData( devicesActGraphData[j].dataTemp, false);
+    }
+    devicesActGraph.redraw();
+    for(var j = 0; j < devicesCumRoyaltyGraph.series.length; j++){
+      devicesCumRoyaltyGraph.series[j].setData( devicesCumRoyaltyGraphData[j].dataTemp, false);
+    }
+    devicesCumRoyaltyGraph.redraw();
+    for(var i = 0; i < lorGainsAreaGraphs.length; i++){
+      for(var j = 0; j < lorGainsAreaGraphs[i].series.length; j++){
+        lorGainsAreaGraphs[i].series[j].setData( lorGainsAreaGraphData[i][j].dataTemp, false);
+      }
+    lorGainsAreaGraphs[i].redraw();
+    }
+    for(var i = 0; i < leeRoyaltyAreaGraphs.length; i++){
+      //always long 2
+      //for(var j = 0; j < leeRoyaltyAreaGraphs[i].series.length; j++){
+        leeRoyaltyAreaGraphs[i].series[0].setData( leeRoyaltyAreaGraphData[i][0].dataTemp, false);
+      leeRoyaltyAreaGraphs[i].series[1].setData( leeRoyaltyAreaGraphData[i][1].dataTemp, false);
+      
+    leeRoyaltyAreaGraphs[i].redraw();
+    }
+    for(var i = 0; i < devicesRulesAreaGraphs.length; i++){
+      for(var j = 0; j < devicesRulesAreaGraphs[i].series.length; j++){
+        devicesRulesAreaGraphs[i].series[j].setData( devicesRulesAreaGraphData[i][j].dataTemp, false);
+      }      
+      devicesRulesAreaGraphs[i].redraw();
+    }
+    }
+}
+function continueSim(count){
+  //PRE:might be interrupted depending on current STATE
+  //printDebug(" inside ");
+  if((simulationState == StateEnum.RUNNING)&&(currentDay <= end)){
+    document.getElementById("dayCurrent").innerHTML = format(currentDay);
+    document.getElementById("dayPassed").innerHTML = count;
+    daysPassed = count;
+    addRandomOracleUsageData(currentDay, count);
+    currentDay = d3.timeDay.offset(currentDay, 1);
+    updateCumulativeOracleUsageData(count);
+    for(var j = 0; j < devicesCumGraph.series.length; j++){
+      devicesCumGraph.series[j].setData( devicesCumGraphData[j].dataTemp, false);
+    }
+    devicesCumGraph.redraw();
+    updateCumulativeOracleActivationData(count);
+    for(var j = 0; j < devicesActGraph.series.length; j++){
+      devicesActGraph.series[j].setData( devicesActGraphData[j].dataTemp, false);
+    }
+    devicesActGraph.redraw();
+    updateCumulativeRoyaltyOracleUsageData(count);
+    for(var j = 0; j < devicesCumRoyaltyGraph.series.length; j++){
+      devicesCumRoyaltyGraph.series[j].setData( devicesCumRoyaltyGraphData[j].dataTemp, false);
+    }
+    devicesCumRoyaltyGraph.redraw();
+    
+    computeNewLicensorsGainData(count);
+    //ch.series[0].setData(temp,false);
+    //let temp = [[startMillis,1],[startMillis+ 24 * 3600000,2]];
+    //lorGainsAreaGraphs[0].series[0].setData(temp, true);
+    for(var i = 0; i < lorGainsAreaGraphs.length; i++){
+      for(var j = 0; j < lorGainsAreaGraphs[i].series.length; j++){
+      //lorGainsAreaGraphs[i].series[j].setData( temp, false);  
+        lorGainsAreaGraphs[i].series[j].setData( lorGainsAreaGraphData[i][j].dataTemp, false);
+      }
+    lorGainsAreaGraphs[i].redraw();
+    }
+    //updating lees
+    computeNewLicenseesGainVsRoyaltyData(count);
+    for(var i = 0; i < leeRoyaltyAreaGraphs.length; i++){
+      //always long 2
+      //for(var j = 0; j < leeRoyaltyAreaGraphs[i].series.length; j++){
+        leeRoyaltyAreaGraphs[i].series[0].setData( leeRoyaltyAreaGraphData[i][0].dataTemp, false);
+      leeRoyaltyAreaGraphs[i].series[1].setData( leeRoyaltyAreaGraphData[i][1].dataTemp, false);
+      
+    leeRoyaltyAreaGraphs[i].redraw();
+    }
+    computeNewDevicesRulesData(count);
+    for(var i = 0; i < devicesRulesAreaGraphs.length; i++){
+      for(var j = 0; j < devicesRulesAreaGraphs[i].series.length; j++){
+        devicesRulesAreaGraphs[i].series[j].setData( devicesRulesAreaGraphData[i][j].dataTemp, false);
+      }      
+      devicesRulesAreaGraphs[i].redraw();
+    }
+    waiting = setTimeout(function(){ continueSim(count+1); }, 500);
+    //await delay(500);
+  }
+}
+/*function addRandomOracleUsageData(day, numDays){
+  let ipGains = [];
+  for(var i = 0; i < ips.legth; i++){
+    ipGains.push(0);
+  }
+  for (var i = 0; i < devices.length; i++){
+    let val = getRandomInt(0,devices[i].popularity);
+    //update number of activated devices
+   devices[i].numActivated += newDailyActivated(devices[i].quantity, numDays); 
+    val = val * devices[i].numActivated;
+    if(oracleUsageData[i].serie.length >= 1)
+      val += oracleUsageData[i].serie[ oracleUsageData[i].serie.length -1 ].value;
+    let last = {
+      date: day,
+      value: val
+    };
+      oracleUsageData[i].serie.push(last);
+    
+      oracleUsageData[i].lastDate = day;
+   last = {
+      date: day,
+      value: devices[i].numActivated
+    }; oracleActivationData[i].serie.push(last);
+   //compute royalties for device i
+  let gain = 0;
+   for (var jj=0; jj < devices[i].rules222.length; jj++) {
+     let newGain = parseInt(computeGain222(numDays , devices[i].rules222[jj]));
+      gain += newGain;
+     ipGains[devices[i].rules222[jj].ip] += newGain;
+      
+  } 
+    /*if(oracleRoyaltyData[i].serie.length >= 1)
+      gain += oracleRoyaltyData[i].serie[ oracleRoyaltyData[i].serie.length -1 ].nonPerc;
+    printDebug("GG"+i+"-"+gain+". ");*/
+/*let perc = gain * 100 / (devices[i].price * devices[i].numActivated);
+  last = {
+      date: day,
+      value: perc,
+      nonPerc: gain
+    };
+  oracleRoyaltyData[i].serie.push(last);
+  }
+  for(var i=0; i<ips.length; i++){
+    oracleIpData[i].serie.push({date: day, value: ipGains[i]});
+  }
+}*/
+function addRandomOracleUsageData(day, numDays){
+  let ipGains = [];
+  for(var i = 0; i < ips.legth; i++){
+    ipGains.push(0);
+  }
+  for (var i = 0; i < devices.length; i++){
+    let val = getRandomInt(0,devices[i].popularity);
+    //update number of activated devices
+   devices[i].numActivated += newDailyActivated(devices[i].quantity, numDays); 
+    val = val * devices[i].numActivated;
+    if(oracleUsageData[i].serie.length >= 1)
+      val += oracleUsageData[i].serie[ oracleUsageData[i].serie.length -1 ].value;
+    let last = {
+      date: day,
+      value: val
+    };
+      oracleUsageData[i].serie.push(last);
+    
+      oracleUsageData[i].lastDate = day;
+   last = {
+      date: day,
+      value: devices[i].numActivated
+    }; oracleActivationData[i].serie.push(last);
+   //compute royalties for device i
+  let gain = 0;
+   for (var jj=0; jj < devices[i].rules222.length; jj++) {
+     let newGain = parseInt(computeGain222(numDays , devices[i].rules222[jj]));
+      gain += newGain;
+     ipGains[devices[i].rules222[jj].ip] += newGain;
+      
+  } 
+    /*if(oracleRoyaltyData[i].serie.length >= 1)
+      gain += oracleRoyaltyData[i].serie[ oracleRoyaltyData[i].serie.length -1 ].nonPerc;
+    printDebug("GG"+i+"-"+gain+". ");*/
+let perc = gain * 100 / (devices[i].price * devices[i].numActivated);
+  last = {
+      date: day,
+      value: perc,
+      nonPerc: gain
+    };
+  oracleRoyaltyData[i].serie.push(last);
+  }
+  for(var i=0; i<ips.length; i++){
+    oracleIpData[i].serie.push({date: day, value: ipGains[i]});
+  }
+}
+function newDailyActivated(maxDailyIncrement, numDaysPassed){
+  //exponentially decreasing, increasing number of activations daily
+  return Math.max(0, (getRandomInt(1, maxDailyIncrement) - Math.floor(numDaysPassed/10)));
+}
+function updateCumulativeOracleUsageData(numDay){
+  let day = addDaysToDateMillisecs(startMillis,numDay);
+  for (var i = 0; i < devices.length; i++){
+   if(devicesCumGraphData[i].dataTemp[devicesCumGraphData[i].dataTemp.length -1][0] == day){
+     devicesCumGraphData[i].dataTemp[devicesCumGraphData[i].dataTemp.length -1][1] = oracleUsageData[i].serie[ oracleUsageData[i].serie.length -1 ].value;
+   }else{
+     devicesCumGraphData[i].dataTemp.push([day, oracleUsageData[i].serie[ oracleUsageData[i].serie.length -1 ].value]);
+   }
+}}
+function updateCumulativeOracleActivationData(numDay){
+  let day = addDaysToDateMillisecs(startMillis,numDay);
+  for (var i = 0; i < devices.length; i++){
+   if(devicesActGraphData[i].dataTemp[devicesActGraphData[i].dataTemp.length -1][0] == day){
+     devicesActGraphData[i].dataTemp[devicesActGraphData[i].dataTemp.length -1][1] = oracleActivationData[i].serie[ oracleActivationData[i].serie.length -1 ].value;
+   }else{
+     devicesActGraphData[i].dataTemp.push([day, oracleActivationData[i].serie[ oracleActivationData[i].serie.length -1 ].value]);
+   }
+}}
+function updateCumulativeRoyaltyOracleUsageData(numDay){
+  let day = addDaysToDateMillisecs(startMillis,numDay);
+  for (var i = 0; i < devices.length; i++){
+   if(devicesCumRoyaltyGraphData[i].dataTemp[devicesCumRoyaltyGraphData[i].dataTemp.length -1][0] == day){
+     devicesCumRoyaltyGraphData[i].dataTemp[devicesCumRoyaltyGraphData[i].dataTemp.length -1][1] = oracleRoyaltyData[i].serie[ oracleRoyaltyData[i].serie.length -1 ].value;
+   }else{
+     devicesCumRoyaltyGraphData[i].dataTemp.push([day, oracleRoyaltyData[i].serie[ oracleRoyaltyData[i].serie.length -1 ].value]);
+   }
+}}
+/*
+function computeLicensorsGainData(day){
+  let gains = [];
+  for (var i = 0; i < licensors.length; i++){
+    gains[i] = 0;
+  }
+  for (var j=0; j < devices.length; j++) {
+    for (var jj=0; jj < devices[j].rules222.length; jj++) {
+      gains[devices[j].rules222[jj].lor] += parseInt(computeGain222( oracleUsageData[j].serie[ oracleUsageData[j].serie.length - 1].value , devices[j].rules222[jj]));
+      //printDebug( ".. "+oracleUsageData[j].serie[ oracleUsageData[j].serie.length - 1].value +" - "+ gains[0]+" - ");
+  }}
+  for (var i = 0; i < licensors.length; i++){
+    let last = {
+      date: day,
+      value: gains[i]
+    };
+      licensorsGainData[i].serie.push(last);
+      licensorsGainData[i].lastDate = day;
+  }
+}
+*/
+/** start graph rendering
+*/
+var start;// = d3.timeDay.floor(new Date);
+var end;// = d3.timeDay.offset(start, duration);
+//end = d3.timeMonth.ceil(new Date);
+var startMillis;
+//var daysPassed;
+
+var deviceGraphs = [];
+var gainGraphs = [];
+var leeRoyaltyGraphs = [];
+var devicesRulesAreaGraphData = [];
+//Example: [{name: "Lor1", lorId: 1, numRules: 1, data:temp.slice(), dataTemp: temp color: '#FF0000'},{...}, ...];
+
+var lorGainsAreaGraphs =[];
+var lorGainsAreaGraphData =[];
+//Example: [{name: "device1", deviceId: 1, numRules: 1, data:temp.slice(), dataTemp: temp color: '#FF0000'},{...}, ...];
+//cumGainsLicensors[i] contains info about i-th licensor
+//cumGainsLicensors[i]=[{name: "device1 (numRules)", data:j-thdeviceGains.slice(), color: '#FF0000'},...]
+function getIndexFromObjectId(array, numToFind){
+  for(var i = 0; i< array.length; i++){
+    if(array[i].deviceId==numToFind)
+      return i;
+  }return -1;
+}
+function getLorIndexFromObjectId(array, numToFind){
+  for(var i = 0; i< array.length; i++){
+    if(array[i].lorId==numToFind)
+      return i;
+  }return -1;
+}
+function computeNewLicensorsGainData(dayNum){
+  if(dayNum < 0){
+    //initialisation
+    for (var j=0; j < devices.length; j++) {
+    for (var jj=0; jj < devices[j].rules222.length; jj++) {
+      //current lor : devices[j].rules222[jj].lor
+      //current device: j
+      let idx = getIndexFromObjectId( lorGainsAreaGraphData[devices[j].rules222[jj].lor], j);
+      if(idx == -1){
+        //add new entry (gains data series)
+        lorGainsAreaGraphData[ devices[j].rules222[jj].lor].push({name: "", deviceId: j, numRules: 1, dataTemp: [[ startMillis, 0]], data: [[ startMillis, 0]], color: devices[j].colour});
+        //printDebug("."+startMillis+".");
+         }else{
+           //increment number of rules
+           lorGainsAreaGraphData[ devices[j].rules222[jj].lor][idx].numRules++;
+         }
+      if(idx == -1){
+        //just pushed, so it is the last element
+        idx = lorGainsAreaGraphData[ devices[j].rules222[jj].lor].length - 1;
+      }
+           lorGainsAreaGraphData[ devices[j].rules222[jj].lor][idx].name = devices[j].name + " (" + lorGainsAreaGraphData[ devices[j].rules222[jj].lor][idx].numRules + ")";
+  }}}else{
+    //update
+    let currentDate = addDaysToDateMillisecs(startMillis,dayNum);
+    var tempGains = [];
+    
+  for (var j=0; j < devices.length; j++) {
+    for(var ii= 0; ii<licensors.length; ii++){
+      tempGains[ii] = -1;
+    }
+    for (var jj=0; jj < devices[j].rules222.length; jj++) {
+     if(tempGains[devices[j].rules222[jj].lor] == -1){
+       tempGains[devices[j].rules222[jj].lor] = parseInt(computeGain222( daysPassed, devices[j].rules222[jj]));
+    }else{
+              tempGains[devices[j].rules222[jj].lor] += parseInt(computeGain222( daysPassed, devices[j].rules222[jj]));
+    }}
+    
+    for(var ii= 0; ii<licensors.length; ii++){
+      if(tempGains[ii] != -1){
+        let idx = getIndexFromObjectId( lorGainsAreaGraphData[ii], j);
+        let prevElem =  lorGainsAreaGraphData[ii][idx].dataTemp[ lorGainsAreaGraphData[ii][idx].dataTemp.length - 1];
+        if(prevElem[0]==currentDate){
+          //overwrite
+          lorGainsAreaGraphData[ii][idx].dataTemp[ lorGainsAreaGraphData[ii][idx].dataTemp.length - 1] = [currentDate, tempGains[ii]];
+        }else{
+          //append new
+          lorGainsAreaGraphData[ii][idx].dataTemp.push([currentDate, tempGains[ii]]);
+        }
+  }}}}
+}
+
+function computeNewLicenseesGainVsRoyaltyData(dayNum){
+  
+    //update
+    let day = addDaysToDateMillisecs(startMillis,dayNum);
+    for (var i=0; i < devices.length; i++) {
+      if(leeRoyaltyAreaGraphData[i][0].dataTemp[leeRoyaltyAreaGraphData[i][0].dataTemp.length -1][0] == day){
+     leeRoyaltyAreaGraphData[i][0].dataTemp[leeRoyaltyAreaGraphData[i][0].dataTemp.length -1][1] = oracleActivationData[i].serie[ oracleActivationData[i].serie.length -1 ].value * devices[i].price;
+        leeRoyaltyAreaGraphData[i][1].dataTemp[leeRoyaltyAreaGraphData[i][1].dataTemp.length -1][1] = oracleRoyaltyData[i].serie[ oracleRoyaltyData[i].serie.length -1 ].nonPerc;
+   }else{
+     leeRoyaltyAreaGraphData[i][0].dataTemp.push([day, oracleActivationData[i].serie[ oracleActivationData[i].serie.length -1 ].value * devices[i].price]);
+     leeRoyaltyAreaGraphData[i][1].dataTemp.push([day, oracleRoyaltyData[i].serie[ oracleRoyaltyData[i].serie.length -1 ].nonPerc]);
+   }
+      
+    }
+}
+function computeNewDevicesRulesData(dayNum){
+  if(dayNum < 0){
+    //initialisation
+    for (var j=0; j < devices.length; j++) {
+    for (var jj=0; jj < devices[j].rules222.length; jj++) {
+      //current lor : devices[j].rules222[jj].lor
+      //current device: j
+      let idx = getLorIndexFromObjectId( devicesRulesAreaGraphData[j], devices[j].rules222[jj].lor);
+      if(idx == -1){
+        //add new entry (gains data series)
+        devicesRulesAreaGraphData[j].push({name: "", lorId: devices[j].rules222[jj].lor, numRules: 1, dataTemp: [[ startMillis, 0]], data: [[ startMillis, 0]], color: licensors[devices[j].rules222[jj].lor].colour});
+        //printDebug("."+startMillis+".");
+         }else{
+           //increment number of rules
+           devicesRulesAreaGraphData[j][idx].numRules++;
+         }
+      if(idx == -1){
+        //just pushed, so it is the last element
+        idx = devicesRulesAreaGraphData[j].length - 1;
+      }
+           devicesRulesAreaGraphData[j][idx].name = licensors[devices[j].rules222[jj].lor].name + " (" + devicesRulesAreaGraphData[j][idx].numRules + ")";
+  }}}else{
+    //update
+    let currentDate = addDaysToDateMillisecs(startMillis,dayNum);
+    var tempGains = [];
+    
+  for (var j=0; j < devices.length; j++) {
+    for(var ii= 0; ii<licensors.length; ii++){
+      tempGains[ii] = -1;
+    }
+    for (var jj=0; jj < devices[j].rules222.length; jj++) {
+     if(tempGains[devices[j].rules222[jj].lor] == -1){
+       tempGains[devices[j].rules222[jj].lor] = parseInt(computeGain222( daysPassed, devices[j].rules222[jj]));
+    }else{
+              tempGains[devices[j].rules222[jj].lor] += parseInt(computeGain222( daysPassed, devices[j].rules222[jj]));
+    }}
+    
+    for(var ii= 0; ii<licensors.length; ii++){
+      if(tempGains[ii] != -1){
+        let idx = getLorIndexFromObjectId( devicesRulesAreaGraphData[j], ii);
+        let prevElem =  devicesRulesAreaGraphData[j][idx].dataTemp[ devicesRulesAreaGraphData[j][idx].dataTemp.length - 1];
+        if(prevElem[0]==currentDate){
+          //overwrite
+          devicesRulesAreaGraphData[j][idx].dataTemp[ devicesRulesAreaGraphData[j][idx].dataTemp.length - 1] = [currentDate, tempGains[ii]];
+        }else{
+          //append new
+          devicesRulesAreaGraphData[j][idx].dataTemp.push([currentDate, tempGains[ii]]);
+        }
+  }}}}
+
+}
+function setupLorGainsAreaGraphs(node){
+  //printDebug(" .setting up area graphs. ");
+  //initialise data structures for gain series
+  lorGainsAreaGraphs = [];
+  lorGainsAreaGraphData = [];
+  for (var i = 0; i < licensors.length; i++) {
+    lorGainsAreaGraphData[i] = [];
+  }
+    //during setup data is still empty but we still have to set up names and colours
+  computeNewLicensorsGainData(-1);
+  //create graph figure elements
+  for (var i = 0; i < licensors.length; i++) {
+    const fig = document.createElement('figure');
+    fig.className = 'highcharts-figure';
+    node.appendChild(fig);
+    const div = document.createElement('div');
+    fig.append(div);
+    lorGainsAreaGraphs[i] =  Highcharts.chart(div, {
+  chart: {
+    type: 'area'
+  },
+  title: {
+    text: licensors[i].name
+  },
+  /*subtitle: {
+    text: 'Source: Wikipedia.org'
+  },*/
+  xAxis: {
+    tickmarkPlacement: 'on',
+    title: {
+      enabled: false
+    },
+    type: 'datetime'
+  },
+  yAxis: {
+    title: {
+      text: 'Gain'
+    },
+  },
+  tooltip: {
+    split: true
+  },
+  plotOptions: {
+    area: {
+      stacking: 'normal',
+      lineColor: '#666666',
+      lineWidth: 1,
+      marker: {
+        lineWidth: 1,
+        lineColor: '#666666'
+      }
+    }
+  },
+  series: lorGainsAreaGraphData[i]
+});
+  }
+}
+var lorIpGainsAreaGraphs = [];
+var lorIpGainsAreaGraphData = [];
+function setupLorIpGainsAreaGraphs(node){
+  //initialise data structures for gain series
+  lorIpGainsAreaGraphs = [];
+  lorIpGainsAreaGraphData = [];
+  for (var i = 0; i < licensors.length; i++) {
+    lorIpGainsAreaGraphData[i] = [];
+  }
+    //during setup data is still empty but we still have to set up names and colours
+  computeNewLicensorsIpGainData(-1);
+  //create graph figure elements
+  for (var i = 0; i < licensors.length; i++) {
+    const fig = document.createElement('figure');
+    fig.className = 'highcharts-figure';
+    node.appendChild(fig);
+    const div = document.createElement('div');
+    fig.append(div);
+    lorIpGainsAreaGraphs[i] =  Highcharts.chart(div, {
+  chart: {
+    type: 'area'
+  },
+  title: {
+    text: licensors[i].name
+  },
+  /*subtitle: {
+    text: 'Source: Wikipedia.org'
+  },*/
+  xAxis: {
+    tickmarkPlacement: 'on',
+    title: {
+      enabled: false
+    },
+    type: 'datetime'
+  },
+  yAxis: {
+    title: {
+      text: 'Gain'
+    },
+  },
+  tooltip: {
+    split: true
+  },
+  plotOptions: {
+    area: {
+      stacking: 'normal',
+      lineColor: '#666666',
+      lineWidth: 1,
+      marker: {
+        lineWidth: 1,
+        lineColor: '#666666'
+      }
+    }
+  },
+  series: lorIpGainsAreaGraphData[i]
+});
+  }
+}
+
+var leeRoyaltyAreaGraphs = [];
+var leeRoyaltyAreaGraphData = [];
+function setupLeeGainVsRoyaltyAreaGraphs(node){
+  //initialise data structures for lee series
+  leeRoyaltyAreaGraphs = [];
+  leeRoyaltyAreaGraphData = [];
+  for (var i = 0; i < devices.length; i++) {
+    leeRoyaltyAreaGraphData[i] =[ {name: devices[i].name+"- sales", dataTemp: [[ startMillis, 0]], data: [[ startMillis, 0]], color: /*devices[i].colour*/"#32CD32"}, {name: devices[i].name+"- royalties", dataTemp: [[ startMillis, 0]], data: [[ startMillis, 0]], color: "#FF0000"}];
+  }
+  //create graph figure elements
+  for (var i = 0; i < devices.length; i++) {
+    const fig = document.createElement('figure');
+    fig.className = 'highcharts-figure';
+    node.appendChild(fig);
+    const div = document.createElement('div');
+    fig.append(div);
+    leeRoyaltyAreaGraphs[i] =  Highcharts.chart(div, {
+  chart: {
+    type: 'area'
+  },
+  title: {
+    text: licensees[devices[i].lee].name + " - "+devices[i].name
+  },
+  xAxis: {
+    tickmarkPlacement: 'on',
+    title: {
+      enabled: false
+    },
+    type: 'datetime'
+  },
+  yAxis: {
+    title: {
+      text: ""+referenceCurrency
+    },
+  },
+  tooltip: {
+    split: true
+  },
+  plotOptions: {
+    area: {
+      //stacking: 'normal',
+      lineColor: '#666666',
+      lineWidth: 2,
+      marker: {
+        lineWidth: 1,
+        lineColor: '#666666'
+      }
+    }
+  },
+  series: leeRoyaltyAreaGraphData[i]
+});
+  }
+}
+
+var devicesRulesAreaGraphs = [];
+function setupDevicesRulesAreaGraphs(node){
+  //initialise data structures for lee series
+  devicesRulesAreaGraphs = [];
+  devicesRulesAreaGraphData = [];
+  for (var i = 0; i < devices.length; i++) {
+    devicesRulesAreaGraphData[i] =[];
+  }
+  //during setup data is still empty but we still have to set up names and colours
+  computeNewDevicesRulesData(-1);
+  //create graph figure elements
+  for (var i = 0; i < devices.length; i++) {
+    const fig = document.createElement('figure');
+    fig.className = 'highcharts-figure';
+    node.appendChild(fig);
+    const div = document.createElement('div');
+    fig.append(div);
+    devicesRulesAreaGraphs[i] =  Highcharts.chart(div, {
+  chart: {
+    type: 'area'
+  },
+  title: {
+    text: devices[i].name
+  },
+  xAxis: {
+    tickmarkPlacement: 'on',
+    title: {
+      enabled: false
+    },
+    type: 'datetime'
+  },
+  yAxis: {
+    title: {
+      text: ""+referenceCurrency
+    },
+  },
+  tooltip: {
+    split: true
+  },
+  plotOptions: {
+    area: {
+      //stacking: 'normal',
+      lineColor: '#666666',
+      lineWidth: 2,
+      marker: {
+        lineWidth: 1,
+        lineColor: '#666666'
+      }
+    }
+  },
+  series: devicesRulesAreaGraphData[i]
+});
+  }
+}
+
+var devicesCumGraph;
+var devicesActGraph;
+var devicesCumGraphData = [];
+var devicesActGraphData = [];
+function setupDevicesCumulativeGraph(){
+  printDebug(" .setting up devices cumulative graphs. ");
+  //during setup data is still empty but we still have to set up names and colours
+  devicesCumGraphData = [];
+  for(var i = 0; i < devices.length; i++){
+    devicesCumGraphData[i] = {name: devices[i].name, dataTemp: [[ startMillis, 0]], data: [[ startMillis, 0]], color: devices[i].colour};
+  }
+  devicesCumGraph =  Highcharts.chart(document.getElementById("devicesCumulativeGraph"), {
+  chart: {
+  },
+  title: {
+    text: 'Device usage'
+  },
+  xAxis: {
+    tickmarkPlacement: 'on',
+    title: {
+      enabled: false
+    },
+    type: 'datetime'
+  },
+  yAxis: {
+    title: {
+      text: 'Number of uses'
+    },
+  },
+  tooltip: {
+    split: true
+  },
+  plotOptions: {
+    area: {
+      stacking: 'normal',
+      lineColor: '#666666',
+      lineWidth: 1,
+      marker: {
+        lineWidth: 1,
+        lineColor: '#666666'
+      }
+    }
+  },
+  series: devicesCumGraphData
+});
+}
+function setupDevicesActivationGraph(){
+  printDebug(" .setting up devices activation graphs. ");
+  //during setup data is still empty but we still have to set up names and colours
+  devicesActGraphData = [];
+  for(var i = 0; i < devices.length; i++){
+    devicesActGraphData[i] = {name: devices[i].name, dataTemp: [[ startMillis, 0]], data: [[ startMillis, 0]], color: devices[i].colour};
+  }
+  devicesActGraph =  Highcharts.chart(document.getElementById("devicesActivationGraph"), {
+  chart: {
+  },
+  title: {
+    text: 'Device activations'
+  },
+  xAxis: {
+    tickmarkPlacement: 'on',
+    title: {
+      enabled: false
+    },
+    type: 'datetime'
+  },
+  yAxis: {
+    title: {
+      text: 'Number of activations'
+    },
+  },
+  tooltip: {
+    split: true
+  },
+  plotOptions: {
+    area: {
+      stacking: 'normal',
+      lineColor: '#666666',
+      lineWidth: 1,
+      marker: {
+        lineWidth: 1,
+        lineColor: '#666666'
+      }
+    }
+  },
+  series: devicesActGraphData
+});
+}
+
+var devicesCumRoyaltyGraph;
+var devicesCumRoyaltyGraphData = [];
+function setupDevicesCumulativeRoyaltyGraph(){
+  //during setup data is still empty but we still have to set up names and colours
+  devicesCumRoyaltyGraphData = [];
+  for(var i = 0; i < devices.length; i++){
+    devicesCumRoyaltyGraphData[i] = {name: devices[i].name, dataTemp: [[ startMillis, 0]], data: [[ startMillis, 0]], color: devices[i].colour};
+  }
+  devicesCumRoyaltyGraph =  Highcharts.chart(document.getElementById("devicesCumulativeRoyaltyGraph"), {
+  chart: {
+  },
+  title: {
+    text: 'Device royalties'
+  },
+  xAxis: {
+    tickmarkPlacement: 'on',
+    title: {
+      enabled: false
+    },
+    type: 'datetime'
+  },
+  yAxis: {
+    title: {
+      text: 'Percentage of royalties paid over selling gain'
+    },
+  },
+  tooltip: {
+    split: true
+  },
+  plotOptions: {
+    area: {
+      stacking: 'normal',
+      lineColor: '#666666',
+      lineWidth: 1,
+      marker: {
+        lineWidth: 1,
+        lineColor: '#666666'
+      }
+    }
+  },
+  series: devicesCumRoyaltyGraphData
+});
+}
+/** end graph rendering
+*/
+/*function deleteRow(r){
+  var i = r.closest("tr").rowIndex;
+  r.closest("table").deleteRow(i);
+ updateNumRulesLabel(document.getElementById("DEV_rules").getElementsByTagName("tr").length - 1);
+}*/
+function deleteRuleThresh(r){
+  let node = r.closest("div");
+  node.parentNode.removeChild(node);
+}
+function addRuleThresh(r){
+  let node = document.getElementById("rule" + lastRuleSeen).getElementsByClassName("RULE_thresholds")[0];
+  const div = document.createElement('div');
+  let ruleLength = devices[lastDeviceSeen].rules222[lastRuleSeen].threshAmounts.length;
+  //always at least one
+  div.innerHTML = '<span>Threshold </span> <input type="number" value="'+ parseInt(devices[lastDeviceSeen].rules222[lastRuleSeen].threshAmounts[ruleLength-1][0]+1)+'" min="1"><span> Amount </span> <input type="number" value="' + devices[lastDeviceSeen].rules222[lastRuleSeen].threshAmounts[ruleLength-1][1]+'" min="1"> <span> '+referenceCurrency+' </span> <button onclick="deleteRuleThresh(this)">Delete</button>';
+  node.append(div);
+}
+
+function displayNewRuleTabs(newDeviceIdx){
+  //erase all current rule tabs
+  document.getElementById("ruleTabButtons").innerHTML = "";
+  document.getElementById("ruleTabContents").innerHTML = "";
+  for(var i=0; i<devices[newDeviceIdx].rules222.length; i++){
+    addRuleTab(newDeviceIdx,i);
+  }
+  document.getElementById("ruleTabButtons").children[0].click();
+}
+function addRuleTab(deviceIdx, ruleIdx){
+  let node = document.getElementById("ruleTabButtons");
+  const btn = document.createElement('button');
+    btn.className = 'tablinks-rules';
+  /////////set correct rule number
+  btn.innerHTML = "rule"+ruleIdx;
+  var att = document.createAttribute("onclick"); 
+  /////////set correct rule id
+att.value = "openRulesTab(event, '"+ruleIdx+"')";
+  btn.setAttributeNode(att);
+  node.appendChild(btn);
+  
+  node = document.getElementById("ruleTabContents");
+  const div = document.createElement('div');
+    div.className = 'tabcontent tabcontent-rules';
+  //div.innerHTML = "rule "+ruleIdx+" content for "+devices[deviceIdx].name;
+  var att = document.createAttribute("id"); 
+att.value = "rule"+ruleIdx;  
+div.setAttributeNode(att);
+  node.appendChild(div);
+    showRuleInfo(deviceIdx, ruleIdx);
+}
+function addNewRuleTab(){
+  //generate a new random rule for the current device
+  //append new random rule to device info
+  let newRuleIdx = devices[lastDeviceSeen].rules222.length;
+  //append
+  devices[lastDeviceSeen].rules222.push(generateRandomRule(lastDeviceSeen, newRuleIdx, getRandomInt(0, licensors.length - 1)));
+  
+  //show its new tab
+ updateNumRulesLabel(newRuleIdx+1); addRuleTab(lastDeviceSeen,newRuleIdx);
+}
+
+function computeGain222(numDays,rule){
+  /*computes the gains depending on the rule type
+  */var ret = 0;
+  if(rule.duration < numDays){
+     return computeGain222(rule.duration,rule);
+  }
+  var param = oracleUsageData[rule.device].serie[numDays].value; //contains numValues left
+  //if 1 then activations instead of uses
+  if(rule.measure==1)
+    param = oracleActivationData[rule.device].serie[numDays].value;
+  else if(rule.measure==2)
+    param = numDays;
+  let currentParam = 0;
+  //reward with current amount * value up to next threshold (if it exists)
+  for(var i=0; i<rule.threshAmounts.length; i++){
+    //if no next thresh then pay all
+    if(i < rule.threshAmounts.length-1){
+      //not last one so up to next thresh
+      currentParam = Math.min(param, rule.threshAmounts[i+1][0]);
+    }else{
+      //last one so do not care about thresholds
+      currentParam = param;
+    }
+    if(currentParam >0){
+    //compute reward:
+    if(rule.type == 0){
+      //LUMP
+      if(rule.percPrice){
+        ret += Math.floor(devices[rule.device].price * rule.threshAmounts[i][1] / 100);
+      }else{
+        ret += parseInt(rule.threshAmounts[i][1]);
+      }
+    }else{
+      //PROPORTIONAL
+      if(rule.percPrice){
+        ret += Math.floor(devices[rule.device].price * rule.threshAmounts[i][1] / 100) * currentParam;
+      }else{
+        ret += currentParam * rule.threshAmounts[i][1];
+      }
+    }}else{
+      break;
+    }
+    //consume used value
+    param = param - currentParam;
+    if(i < rule.threshAmounts.length-1){
+      //not last one so up to next thresh
+      if(currentParam < rule.threshAmounts[i+1][0]){
+        //not reached next thresh, so break
+        break;}}
+  }return ret;
+}
+function getRandomHexColour(){
+  const randomColour = Math.floor(Math.random()*16777214 + 1).toString(16);
+  let randomColour2 = randomColour.padStart(6,"0");
+  printDebug("."+randomColour2+" . ");
+ return "#" + randomColour2;
+}
+function getCurrentDayStartMillisecs(){
+  var day = new Date().getTime();
+  var msPerDay = 86400 * 1000;
+  return day - (day % msPerDay);
+}
+function addDaysToDateMillisecs(startDate,numDays){
+  return startDate + numDays * 24 * 3600000;
+}
+var colourScheeme = ["#8dd3c7","#ffffb3", "#bebada", "#fb8072", "#80b1d3", "#fdb462", "#b3de69", "#fccde5", "#d9d9d9", "#bc80bd", "#ccebc5", "#ffed6f"];
+function getScheemeHexColour(counter){
+  if(counter >=0 && counter < colourScheeme.length)
+    return colourScheeme[counter];
+  else
+    return getRandomHexColour();
+}
+var fileSimConfigLoad = document.getElementById('loadSimConfig');
+fileSimConfigLoad.addEventListener('change', newFileLoaded);
+function newFileLoaded(){
+  if (fileSimConfigLoad.files.length === 0) {
+    printDebug('No file selected.');
+  }else{
+    printDebug("Reading file " + fileSimConfigLoad.files[0].name + " .");
+  const reader = new FileReader();
+  reader.onload = function fileReadCompleted() {
+    // when the reader is done, the content is in reader.result .
+    //printDebug(reader.result);
+    printDebug("Loaded " + fileSimConfigLoad.files[0].name + " .");
+    resetSimParamsFromJSON(reader.result);
+  };
+  reader.readAsText(fileSimConfigLoad.files[0]);
+}}
+function simParamsToJSON(){
+  //converts all sim settings to a single JSON object
+  let simConfig ={
+    refCu : referenceCurrency,
+    devs : devices,
+    lees : licensees,
+    lors : licensors,
+    ipss : ips
+  };
+  let simConfigJSONString = JSON.stringify(simConfig);
+  //printDebug(simConfigJSONString);
+  return simConfigJSONString;
+}
+function resetSimParamsFromJSON( jsonTextSimConfig ){
+  //updates all sim settings reading values from a single JSON object
+  let simConfigJSONObj = JSON.parse( jsonTextSimConfig );
+  referenceCurrency = simConfigJSONObj.refCu;
+  devices = simConfigJSONObj.devs;
+  licensees = simConfigJSONObj.lees;
+  licensors = simConfigJSONObj.lors;
+  ips = simConfigJSONObj.ipss;
+  resetSimConfig();
+  //printDebug("Loaded sim config from file");
+}
+function resetSimConfig(){
+  document.getElementById("currency").value = referenceCurrency;
+  lastLeeSeen = 0;
+  lastlorSeen = 0;
+  lastDeviceSeen = licensees[ lastLeeSeen ].devices[0];
+  showLeeInfosFirst( lastLeeSeen);
+  showLorInfos(lastLorSeen);
+}
+function copySimConfigJSON() {
+  /* Get the text field */
+  var copyText = document.getElementById("supportHiddenText");
+
+  copyText.value = simParamsToJSON();
+  /* Select the text field */
+  copyText.select();
+  copyText.setSelectionRange(0, 99999); /*For mobile devices*/
+
+  /* Copy the text inside the text field */
+  document.execCommand("copy");
+
+  /* Alert the copied text */
+  alert("Copied the sim config: " + copyText.value);
+} 
+//# sourceURL=userscript.js
+</script>
+</body>
+</html>
